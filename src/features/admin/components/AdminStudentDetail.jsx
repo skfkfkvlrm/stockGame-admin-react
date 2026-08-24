@@ -199,7 +199,7 @@ const AdminStudentDetail = () => {
                                 학급 랭킹: {studentData.rank ? `${studentData.rank}위` : '참여 중'}
                             </span>
                             <span className="student-badge">
-                                보유 쿠폰: {coupons.length}개
+                                사용 가능한 쿠폰: {coupons.filter(c => c.state === '사용전' || c.state === 'UNUSED' || c.state === '미사용' || c.status === 'UNUSED' || c.isUsed === false).length}개 (총 {coupons.length}개)
                             </span>
                         </div>
                     </div>
@@ -384,27 +384,31 @@ const AdminStudentDetail = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {coupons.map((cp, idx) => (
-                                        <tr key={idx}>
-                                            <td>#{cp.id || cp.couponPurchaseId || (idx + 1)}</td>
-                                            <td style={{ fontWeight: '700' }}>{cp.couponName || cp.name || '쿠폰'}</td>
-                                            <td style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                                                {cp.createdDate ? new Date(cp.createdDate).toLocaleString('ko-KR') : '-'}
-                                            </td>
-                                            <td>
-                                                <span style={{
-                                                    padding: '3px 8px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: '700',
-                                                    background: cp.isUsed ? '#f1f5f9' : '#dcfce7',
-                                                    color: cp.isUsed ? '#94a3b8' : '#15803d'
-                                                }}>
-                                                    {cp.isUsed ? '사용 완료' : '사용 가능'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {coupons.map((cp, idx) => {
+                                        const rawState = cp.state || cp.status || '';
+                                        const isUsed = cp.isUsed === true || rawState === '사용' || rawState === 'USED';
+                                        return (
+                                            <tr key={idx}>
+                                                <td>#{cp.couponPurchaseId || cp.id || (idx + 1)}</td>
+                                                <td style={{ fontWeight: '700' }}>{cp.name || cp.couponName || '쿠폰'}</td>
+                                                <td style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                                                    {cp.createdDate ? new Date(cp.createdDate).toLocaleString('ko-KR') : '-'}
+                                                </td>
+                                                <td>
+                                                    <span style={{
+                                                        padding: '3px 8px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: '700',
+                                                        background: isUsed ? '#f1f5f9' : '#dcfce7',
+                                                        color: isUsed ? '#94a3b8' : '#15803d'
+                                                    }}>
+                                                        {isUsed ? '사용 완료' : '사용 가능'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         )
