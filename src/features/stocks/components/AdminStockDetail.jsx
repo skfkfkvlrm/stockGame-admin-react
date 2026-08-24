@@ -20,9 +20,9 @@ const AdminStockDetail = () => {
         setIsRefreshing(true);
         try {
             const [infoRes, historyRes, txRes] = await Promise.all([
-                api.get(`/stock/${stockId}`),
-                api.get(`/stock/${stockId}/history`),
-                api.get(`/admin/stocks/${stockId}/transactions`)
+                api.get(`/stock/${stockId}`).catch(() => ({ data: { success: false, data: null } })),
+                api.get(`/stock/${stockId}/history`).catch(() => ({ data: { success: false, data: [] } })),
+                api.get(`/admin/stocks/${stockId}/transactions`).catch(() => ({ data: { success: false, data: [] } }))
             ]);
 
             const info = infoRes.data?.data;
@@ -34,7 +34,7 @@ const AdminStockDetail = () => {
             }
 
             setStockInfo(info);
-            setTransactions(txRes.data?.data || []);
+            setTransactions(Array.isArray(txRes.data?.data) ? txRes.data.data : []);
 
             const initialPrice = info.nowPrice ?? info.pubPrice ?? 0;
             const rawHistory = Array.isArray(historyRes.data?.data) ? historyRes.data.data : [];
