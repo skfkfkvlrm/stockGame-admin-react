@@ -48,12 +48,12 @@ const Login = () => {
 
                 <form onSubmit={handleLogin} className="login-form">
                     <div className="input-group">
-                        <label>관리자 아이디</label>
+                        <label>아이디</label>
                         <div className="input-icon-wrapper">
                             <User className="input-icon" size={18} />
                             <input
                                 type="text"
-                                placeholder="관리자 아이디를 입력하세요 (예: admin)"
+                                placeholder="아이디를 입력하세요"
                                 value={studentId}
                                 onChange={(e) => setStudentId(e.target.value)}
                             />
