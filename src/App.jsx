@@ -9,8 +9,8 @@ import StockDetail from './features/stocks/components/StockDetail';
 import NewsList from './features/news/components/NewsList';
 import PointsHistory from './features/points/components/PointsHistory';
 import CouponStore from './features/coupons/components/CouponStore';
-import MyCoupons from './features/coupons/components/MyCoupons';
 import AdminDashboard from './features/admin/components/AdminDashboard';
+import AdminStockDetail from './features/stocks/components/AdminStockDetail';
 import RequireAdmin from './features/auth/components/RequireAdmin';
 import RankingList from './features/ranking/components/RankingList';
 import useAuthStore from './features/auth/store/useAuthStore';
@@ -49,6 +49,10 @@ function App() {
         <Route path="/" element={<RequireAuth><MainLayout /></RequireAuth>}>
             <Route index element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+            <Route path="students" element={<RequireAdmin><AdminDashboard initialTab="students" /></RequireAdmin>} />
+            <Route path="stocks" element={<RequireAdmin><AdminDashboard initialTab="stocks" /></RequireAdmin>} />
+            <Route path="stocks/:stockId" element={<RequireAdmin><AdminStockDetail /></RequireAdmin>} />
+            <Route path="coupons" element={<RequireAdmin><AdminDashboard initialTab="coupons" /></RequireAdmin>} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

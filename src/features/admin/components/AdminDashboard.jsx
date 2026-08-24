@@ -5,9 +5,10 @@ import api from '../../../api/axios';
 import useMarketStore from '../store/useMarketStore';
 import './AdminDashboard.css';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ initialTab }) => {
     const location = useLocation();
-    const [activeTab, setActiveTab] = useState(location.state?.tab || 'students'); // 'students' | 'stocks' | 'coupons'
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState(initialTab || location.state?.tab || 'students'); // 'students' | 'stocks' | 'coupons'
     const [students, setStudents] = useState([]);
     const [stocks, setStocks] = useState([]);
     const [coupons, setCoupons] = useState([]);
@@ -16,10 +17,12 @@ const AdminDashboard = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (location.state?.tab) {
+        if (initialTab) {
+            setActiveTab(initialTab);
+        } else if (location.state?.tab) {
             setActiveTab(location.state.tab);
         }
-    }, [location.state]);
+    }, [initialTab, location.state]);
 
     const marketOpen = useMarketStore((state) => state.marketOpen);
     const fetchMarketStatus = useMarketStore((state) => state.fetchMarketStatus);
@@ -522,9 +525,14 @@ const AdminDashboard = () => {
                                 <tbody>
                                     {stocks.length > 0 ? (
                                         stocks.map((st) => (
-                                            <tr key={st.stockId}>
+                                            <tr 
+                                                key={st.stockId}
+                                                style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                                                onClick={() => navigate(`/stocks/${st.stockId}`)}
+                                                title="클릭하여 실시간 체결 내역 및 상세 모니터링 페이지로 이동"
+                                            >
                                                 <td>#{st.stockId}</td>
-                                                 <td className="font-bold">{st.stockName || st.name}</td>
+                                                 <td className="font-bold" style={{ color: '#0284c7' }}>🔍 {st.stockName || st.name}</td>
                                                 <td>{st.content}</td>
                                                  <td className="font-bold">{(st.pubPrice ?? st.publicationPrice ?? 0).toLocaleString()} 원</td>
                                                  <td className="font-bold text-highlight">{(st.pubAmount ?? st.publicationBalance ?? 0).toLocaleString()} 주</td>
@@ -543,7 +551,7 @@ const AdminDashboard = () => {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td>
+                                                <td onClick={(e) => e.stopPropagation()}>
                                                     <div style={{ display: 'flex', gap: '8px' }}>
                                                         <button 
                                                             style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
