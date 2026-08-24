@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './features/core/layout/MainLayout';
 import Login from './features/auth/components/Login';
-import Register from './features/auth/components/Register';
 import Dashboard from './features/dashboard/components/Dashboard';
 import StockList from './features/stocks/components/StockList';
 import StockDetail from './features/stocks/components/StockDetail';
@@ -44,7 +43,6 @@ function App() {
       <Routes>
         {/* 로그인은 레이아웃 외부에서 단독 렌더링 */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         
         {/* 내부 페이지들은 MainLayout 내에서 렌더링 */}
         <Route path="/" element={<RequireAuth><MainLayout /></RequireAuth>}>

@@ -73,12 +73,8 @@ const Login = () => {
                     </div>
 
                     <button type="submit" className="login-btn" disabled={isLoading}>
-                        <LogIn size={20} /> {isLoading ? '로그인 중...' : '로그인'}
+                        <LogIn size={20} /> {isLoading ? '로그인 중...' : '관리자 로그인'}
                     </button>
-
-                    <div className="login-links">
-                        <span onClick={() => navigate('/register')} className="link">계정이 없으신가요? <b>회원가입</b></span>
-                    </div>
                 </form>
             </div>
         </div>
