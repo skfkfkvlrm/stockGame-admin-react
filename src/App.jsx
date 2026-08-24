@@ -11,6 +11,7 @@ import PointsHistory from './features/points/components/PointsHistory';
 import CouponStore from './features/coupons/components/CouponStore';
 import AdminDashboard from './features/admin/components/AdminDashboard';
 import AdminStockDetail from './features/stocks/components/AdminStockDetail';
+import AdminStudentDetail from './features/admin/components/AdminStudentDetail';
 import RequireAdmin from './features/auth/components/RequireAdmin';
 import RankingList from './features/ranking/components/RankingList';
 import useAuthStore from './features/auth/store/useAuthStore';
@@ -50,6 +51,7 @@ function App() {
             <Route index element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="stocks/:stockId" element={<RequireAdmin><AdminStockDetail /></RequireAdmin>} />
+            <Route path="students/:studentId" element={<RequireAdmin><AdminStudentDetail /></RequireAdmin>} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -621,15 +621,19 @@ const AdminDashboard = ({ initialTab }) => {
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map((s) => (
-                                            <tr key={s.id || s.studentId}>
+                                            <tr 
+                                                key={s.id || s.studentId}
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => navigate(`/students/${s.studentId}`)}
+                                            >
                                                 <td>#{s.id}</td>
                                                 <td className="font-mono">{s.studentId}</td>
-                                                <td className="font-bold">{s.name}</td>
+                                                <td className="font-bold" style={{ color: '#2563eb' }}>{s.name}</td>
                                                 <td>{s.grade}학년 {s.className && s.className.includes('반') ? s.className : `${s.className || ''}반`} {s.classNumber}번</td>
                                                 <td className="font-bold text-accent">{s.totalPoint ? s.totalPoint.toLocaleString() : 0} P</td>
                                                 <td>{s.totalCoupon || 0} 개</td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <div style={{ display: 'flex', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
                                                         <button 
                                                             style={{ padding: '6px 12px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
                                                             onClick={() => handleOpenPointModal(s)}
@@ -638,9 +642,9 @@ const AdminDashboard = ({ initialTab }) => {
                                                         </button>
                                                         <button 
                                                             style={{ padding: '6px 12px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
-                                                            onClick={() => handleOpenDetailModal(s)}
+                                                            onClick={() => navigate(`/students/${s.studentId}`)}
                                                         >
-                                                            상세보기
+                                                            포트폴리오 상세
                                                         </button>
                                                         <button 
                                                             style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
