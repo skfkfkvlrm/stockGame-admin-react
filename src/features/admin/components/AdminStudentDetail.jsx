@@ -340,25 +340,42 @@ const AdminStudentDetail = () => {
                                 <thead>
                                     <tr>
                                         <th>일시</th>
-                                        <th>변동 사유</th>
-                                        <th>변동 금액</th>
-                                        <th>거래 후 잔여 포인트</th>
+                                        <th>구분</th>
+                                        <th>상세 내역 (사유 / 종목명)</th>
+                                        <th style={{ textAlign: 'right' }}>변동 금액</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {pointsHistory.map((ph, idx) => {
-                                        const isPlus = (ph.changedAmount || ph.amount || 0) >= 0;
+                                        const changeVal = ph.pointChange ?? ph.changedAmount ?? ph.amount ?? 0;
+                                        const isPlus = changeVal >= 0;
+                                        const contentText = ph.historyContent || ph.reason || ph.content || '포인트 변동';
+                                        const typeText = ph.historyType || (isPlus ? '지급' : '차감');
+                                        const dateRaw = ph.historyDate || ph.createdDate;
+                                        const dateFormatted = dateRaw ? new Date(dateRaw).toLocaleString('ko-KR') : '-';
+
                                         return (
                                             <tr key={idx}>
                                                 <td style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                                                    {ph.createdDate ? new Date(ph.createdDate).toLocaleString('ko-KR') : '-'}
+                                                    {dateFormatted}
                                                 </td>
-                                                <td style={{ fontWeight: '600' }}>{ph.reason || ph.content || '포인트 변동'}</td>
-                                                <td style={{ fontWeight: '700', color: isPlus ? '#10b981' : '#ef4444' }}>
-                                                    {isPlus ? '+' : ''}{(ph.changedAmount || ph.amount || 0).toLocaleString()} P
+                                                <td>
+                                                    <span style={{
+                                                        padding: '3px 8px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: '700',
+                                                        background: isPlus ? '#ecfdf5' : '#fef2f2',
+                                                        color: isPlus ? '#059669' : '#dc2626'
+                                                    }}>
+                                                        {typeText}
+                                                    </span>
                                                 </td>
-                                                <td style={{ fontWeight: '700' }}>
-                                                    {(ph.balance || ph.currentPoint || 0).toLocaleString()} P
+                                                <td style={{ fontWeight: '600', color: '#1e293b' }}>
+                                                    {contentText}
+                                                </td>
+                                                <td style={{ fontWeight: '800', textAlign: 'right', color: isPlus ? '#10b981' : '#ef4444' }}>
+                                                    {isPlus ? '+' : ''}{changeVal.toLocaleString()} P
                                                 </td>
                                             </tr>
                                         );
