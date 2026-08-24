@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'react-toastify/dist/ReactToastify.css';
+
+:root {
+  /* HSL Colors - Clean & Functional Minimalist Theme */
+  --bg-main: #F8F9FA; /* Off-white background */
+  --bg-panel: #FFFFFF; /* Pure white panels */
+  --bg-panel-border: #E5E7EB; /* Subtle grey border */
+  --bg-panel-hover: #F3F4F6;
+  
+  --text-main: #111827; /* High contrast black */
+  --text-muted: #6B7280; /* Readable grey */
+  
+  /* Functional Accents - No Neon, Just clear states */
+  --accent-primary: #0F172A; /* Slate 900 for primary actions */
+  --accent-secondary: #3B82F6; /* Standard Blue for links */
+  --accent-red: #EF4444; /* Profit UP / Sell (Clear Red) */
+  --accent-blue: #3B82F6; /* Profit DOWN / Buy (Clear Blue) */
+  
+  /* Solid design, no glass or gradients */
+  --glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --border-radius-lg: 8px; /* Sharper, more professional corners */
+  --border-radius-md: 6px;
+
+  /* Typography - focused on readability */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+a {
+  color: var(--accent-secondary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.15s ease;
+}
+
+/* Common Classes */
+.glass-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--bg-panel-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--border-radius-lg);
+}
+
+/* Korea Stock Market Colors */
+.profit-up {
+  color: var(--accent-red) !important;
+  font-weight: 600;
+}
+
+.profit-down {
+  color: var(--accent-blue) !important;
+  font-weight: 600;
+}
+
+/* Toastify Overrides */
+.Toastify__toast-theme--light {
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--bg-panel-border) !important;
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--border-radius-lg);
+  font-family: var(--font-family);
+  color: var(--text-main) !important;
+}
+
+/* Functional Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Functional Micro-animations */
+@keyframes flashUpdate {
+  0% { background-color: #FEF3C7; } /* Subtle yellow flash for data update */
+  100% { background-color: transparent; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

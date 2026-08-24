@@ -1,0 +1,6 @@
+/* App.css - Cleared Vite Defaults. Utilizing global index.css now */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
