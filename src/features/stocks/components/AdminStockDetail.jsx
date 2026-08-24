@@ -98,8 +98,8 @@ const AdminStockDetail = () => {
     if (error || !stockInfo) {
         return (
             <div className="admin-stock-detail-container">
-                <button className="admin-back-btn" onClick={() => navigate('/stocks')}>
-                    <ArrowLeft size={16} /> 종목 목록으로
+                <button className="admin-back-btn" onClick={() => navigate('/', { state: { tab: 'stocks' } })}>
+                    <ArrowLeft size={16} /> 대시보드로 돌아가기
                 </button>
                 <div style={{ textAlign: 'center', padding: '60px 0', color: '#ef4444' }}>
                     <h2>{error || '종목 정보를 불러올 수 없습니다.'}</h2>
@@ -118,8 +118,8 @@ const AdminStockDetail = () => {
     return (
         <div className="admin-stock-detail-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <button className="admin-back-btn" onClick={() => navigate('/stocks')}>
-                    <ArrowLeft size={16} /> 종목 목록으로
+                <button className="admin-back-btn" onClick={() => navigate('/', { state: { tab: 'stocks' } })}>
+                    <ArrowLeft size={16} /> 대시보드로 돌아가기
                 </button>
                 <button 
                     onClick={fetchData} 

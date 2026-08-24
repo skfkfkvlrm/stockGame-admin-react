@@ -49,10 +49,7 @@ function App() {
         <Route path="/" element={<RequireAuth><MainLayout /></RequireAuth>}>
             <Route index element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-            <Route path="students" element={<RequireAdmin><AdminDashboard initialTab="students" /></RequireAdmin>} />
-            <Route path="stocks" element={<RequireAdmin><AdminDashboard initialTab="stocks" /></RequireAdmin>} />
             <Route path="stocks/:stockId" element={<RequireAdmin><AdminStockDetail /></RequireAdmin>} />
-            <Route path="coupons" element={<RequireAdmin><AdminDashboard initialTab="coupons" /></RequireAdmin>} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

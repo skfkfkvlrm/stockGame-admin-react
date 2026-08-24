@@ -59,17 +59,8 @@ const Sidebar = () => {
             </div>
 
             <nav className="sidebar-menu">
-                <button className={`menu-item ${isActive('/') || isActive('/admin')}`} onClick={() => navigate('/')}>
-                    <ShieldCheck className="icon" size={20} /> 총괄 대시보드
-                </button>
-                <button className={`menu-item ${isActive('/stocks') || location.pathname.startsWith('/stocks/') ? 'active' : ''}`} onClick={() => navigate('/stocks')}>
-                    <TrendingUp className="icon" size={20} /> 종목 관리 (상세)
-                </button>
-                <button className={`menu-item ${isActive('/coupons')}`} onClick={() => navigate('/coupons')}>
-                    <Store className="icon" size={20} /> 쿠폰 상점 관리
-                </button>
-                <button className={`menu-item ${isActive('/students')}`} onClick={() => navigate('/students')}>
-                    <Users className="icon" size={20} /> 학생 계정/랭킹 관리
+                <button className={`menu-item ${isActive('/') || isActive('/admin') || location.pathname.startsWith('/stocks/') ? 'active' : ''}`} onClick={() => navigate('/')}>
+                    <ShieldCheck className="icon" size={20} /> 관리자 총괄 관제
                 </button>
             </nav>
             
