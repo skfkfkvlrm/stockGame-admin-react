@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, Newspaper, Wallet, Store, LogOut, ShieldCheck, Trophy, Ticket } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, Newspaper, Wallet, Store, LogOut, ShieldCheck, Trophy, Ticket, Users } from 'lucide-react';
 import useAuthStore from '../../auth/store/useAuthStore';
 import useMarketStore from '../../admin/store/useMarketStore';
 import './Sidebar.css';
