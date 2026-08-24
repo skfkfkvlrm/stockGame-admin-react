@@ -325,7 +325,7 @@ const AdminStudentDetail = () => {
                         className={`activity-tab-btn ${activeTab === 'coupons' ? 'active' : ''}`}
                         onClick={() => setActiveTab('coupons')}
                     >
-                        <Ticket size={16} /> 보유/구매 쿠폰함 ({coupons.length})
+                        <Ticket size={16} /> 보유 쿠폰함 ({coupons.length})
                     </button>
                 </div>
 
