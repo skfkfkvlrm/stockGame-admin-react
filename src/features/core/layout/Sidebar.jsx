@@ -14,12 +14,23 @@ const Sidebar = () => {
     const fetchMe = useAuthStore((state) => state.fetchMe);
 
     const marketOpen = useMarketStore((state) => state.marketOpen);
+    const mode = useMarketStore((state) => state.mode);
+    const openTime = useMarketStore((state) => state.openTime);
+    const closeTime = useMarketStore((state) => state.closeTime);
+    const statusCode = useMarketStore((state) => state.statusCode);
     const fetchMarketStatus = useMarketStore((state) => state.fetchMarketStatus);
 
     useEffect(() => {
         fetchMe();
         fetchMarketStatus();
     }, [location.pathname]);
+
+    const getMarketStatusLabel = () => {
+        if (statusCode === 'HOLIDAY') return '주말 정기 휴장';
+        if (statusCode === 'CLOSED') return `장 마감 (${openTime} 개장)`;
+        if (statusCode === 'MANUAL_PAUSE') return '수동 점검(휴장)';
+        return `정규장 운영중 (${openTime}~${closeTime})`;
+    };
 
     const handleLogout = async () => {
         await logout();
@@ -55,7 +66,7 @@ const Sidebar = () => {
 
             <div className={`market-status ${marketOpen ? 'open' : 'closed'}`}>
                 <span className="status-dot"></span>
-                <p>{marketOpen ? '현재 장 운영중' : '현재 장 휴장중'}</p>
+                <p>{getMarketStatusLabel()}</p>
             </div>
 
             <nav className="sidebar-menu">

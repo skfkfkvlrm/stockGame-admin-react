@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, TrendingUp, Store, Search, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
+import { Users, TrendingUp, Store, Search, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, Plus, Clock, Settings, Play, Pause } from 'lucide-react';
 import api from '../../../api/axios';
 import useMarketStore from '../store/useMarketStore';
 import './AdminDashboard.css';
@@ -25,17 +25,49 @@ const AdminDashboard = ({ initialTab }) => {
     }, [initialTab, location.state]);
 
     const marketOpen = useMarketStore((state) => state.marketOpen);
+    const mode = useMarketStore((state) => state.mode);
+    const openTime = useMarketStore((state) => state.openTime);
+    const closeTime = useMarketStore((state) => state.closeTime);
+    const statusCode = useMarketStore((state) => state.statusCode);
     const fetchMarketStatus = useMarketStore((state) => state.fetchMarketStatus);
     const toggleMarketStatus = useMarketStore((state) => state.toggleMarketStatus);
+    const updateMarketSettings = useMarketStore((state) => state.updateMarketSettings);
+
+    const [isEditingMarket, setIsEditingMarket] = useState(false);
+    const [editMode, setEditMode] = useState('AUTO');
+    const [editOpenTime, setEditOpenTime] = useState('09:00');
+    const [editCloseTime, setEditCloseTime] = useState('15:30');
 
     useEffect(() => {
-        fetchMarketStatus();
+        fetchMarketStatus().then((data) => {
+            if (data) {
+                setEditMode(data.mode || 'AUTO');
+                setEditOpenTime(data.openTime || '09:00');
+                setEditCloseTime(data.closeTime || '15:30');
+            }
+        });
     }, []);
+
+    const handleSaveMarketSettings = async (e) => {
+        e.preventDefault();
+        try {
+            await updateMarketSettings({
+                mode: editMode,
+                openTime: editOpenTime,
+                closeTime: editCloseTime
+            });
+            alert('시장 운영 설정이 성공적으로 업데이트되었습니다!');
+            setIsEditingMarket(false);
+            fetchMarketStatus();
+        } catch (err) {
+            alert('시장 설정 저장 중 오류가 발생했습니다.');
+        }
+    };
 
     const handleToggleMarket = async () => {
         try {
-            const isOpen = await toggleMarketStatus();
-            alert(`주식 시장이 [${isOpen ? '개장' : '휴장'}] 상태로 변경되었습니다.`);
+            const data = await toggleMarketStatus();
+            alert(`주식 시장이 [${data?.marketOpen ? '수동 개장' : '수동 점검(휴장)'}] 상태로 전환되었습니다.`);
         } catch (err) {
             alert('시장 상태 변경 실패');
         }
@@ -336,6 +368,156 @@ const AdminDashboard = ({ initialTab }) => {
                 <button className="refresh-btn" onClick={fetchData} disabled={loading}>
                     <RefreshCw size={16} className={loading ? 'spin' : ''} /> 새로고침
                 </button>
+            </div>
+
+            {/* Real-time Market Control & Schedule Panel */}
+            <div className="glass-panel" style={{
+                padding: '16px 20px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                borderLeft: `5px solid ${marketOpen ? '#10b981' : '#ef4444'}`
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: marketOpen ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: marketOpen ? '#10b981' : '#ef4444',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Clock size={22} />
+                    </div>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: '#1e293b' }}>
+                                시장 관제 상태: {marketOpen ? '🟢 정규장 거래 진행중' : '🔴 장 휴장/마감'}
+                            </h3>
+                            <span style={{
+                                fontSize: '0.75rem',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                fontWeight: '700',
+                                background: mode === 'AUTO' ? '#e0e7ff' : '#fef3c7',
+                                color: mode === 'AUTO' ? '#4338ca' : '#b45309'
+                            }}>
+                                {mode === 'AUTO' ? '자동 스케줄 운영' : '관리자 수동 제어'}
+                            </span>
+                        </div>
+                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                            운영 시간표: 평일 {openTime} ~ {closeTime} (주말/장외 자동 차단)
+                        </p>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                        onClick={handleToggleMarket}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: marketOpen ? '#fee2e2' : '#dcfce7',
+                            color: marketOpen ? '#b91c1c' : '#15803d',
+                            border: `1px solid ${marketOpen ? '#fca5a5' : '#86efac'}`,
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {marketOpen ? <Pause size={15} /> : <Play size={15} />}
+                        {marketOpen ? '강제 수동 일시정지' : '강제 수동 즉시 개장'}
+                    </button>
+                    <button
+                        onClick={() => setIsEditingMarket(!isEditingMarket)}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: '#f8fafc',
+                            color: '#334155',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Settings size={15} /> {isEditingMarket ? '설정 닫기' : '운영시간/모드 변경'}
+                    </button>
+                </div>
+
+                {isEditingMarket && (
+                    <form onSubmit={handleSaveMarketSettings} style={{
+                        width: '100%',
+                        marginTop: '12px',
+                        paddingTop: '12px',
+                        borderTop: '1px dashed #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '12px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>운영 모드:</label>
+                            <select
+                                value={editMode}
+                                onChange={(e) => setEditMode(e.target.value)}
+                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                            >
+                                <option value="AUTO">자동 스케줄 (실제 주식 장 시간표 준수)</option>
+                                <option value="MANUAL">수동 제어 (교사 직접 개/폐 조작)</option>
+                            </select>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>개장 시간:</label>
+                            <input
+                                type="time"
+                                value={editOpenTime}
+                                onChange={(e) => setEditOpenTime(e.target.value)}
+                                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                required
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>마감 시간:</label>
+                            <input
+                                type="time"
+                                value={editCloseTime}
+                                onChange={(e) => setEditCloseTime(e.target.value)}
+                                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                required
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            style={{
+                                padding: '6px 14px',
+                                background: '#3b82f6',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontWeight: '700',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            적용 저장
+                        </button>
+                    </form>
+                )}
             </div>
 
             {/* Navigation Tabs */}
