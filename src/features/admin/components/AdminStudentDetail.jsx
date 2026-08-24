@@ -394,7 +394,6 @@ const AdminStudentDetail = () => {
                             <table className="detail-table">
                                 <thead>
                                     <tr>
-                                        <th>구매 번호</th>
                                         <th>쿠폰 상품명</th>
                                         <th>구매 일시</th>
                                         <th>사용 여부</th>
@@ -406,8 +405,7 @@ const AdminStudentDetail = () => {
                                         const isUsed = cp.isUsed === true || rawState === '사용' || rawState === 'USED';
                                         return (
                                             <tr key={idx}>
-                                                <td>#{cp.couponPurchaseId || cp.id || (idx + 1)}</td>
-                                                <td style={{ fontWeight: '700' }}>{cp.name || cp.couponName || '쿠폰'}</td>
+                                                <td style={{ fontWeight: '700', color: '#1e293b' }}>{cp.name || cp.couponName || '쿠폰'}</td>
                                                 <td style={{ color: '#64748b', fontSize: '0.85rem' }}>
                                                     {cp.createdDate ? new Date(cp.createdDate).toLocaleString('ko-KR') : '-'}
                                                 </td>
