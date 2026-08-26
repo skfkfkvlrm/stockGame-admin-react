@@ -71,6 +71,17 @@
     to { transform: rotate(360deg); }
 }
 
+@keyframes popoverFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .admin-tabs {
     display: flex;
     gap: 0.75rem;

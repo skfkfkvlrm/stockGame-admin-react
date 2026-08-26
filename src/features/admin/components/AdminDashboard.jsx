@@ -416,7 +416,7 @@ const AdminDashboard = ({ initialTab }) => {
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
                     <button
                         onClick={handleToggleMarket}
                         style={{
@@ -443,103 +443,153 @@ const AdminDashboard = ({ initialTab }) => {
                             alignItems: 'center',
                             gap: '6px',
                             padding: '8px 14px',
-                            background: '#f8fafc',
-                            color: '#334155',
-                            border: '1px solid #cbd5e1',
+                            background: isEditingMarket ? '#e0e7ff' : '#f8fafc',
+                            color: isEditingMarket ? '#4338ca' : '#334155',
+                            border: `1px solid ${isEditingMarket ? '#818cf8' : '#cbd5e1'}`,
                             borderRadius: '8px',
                             fontSize: '0.85rem',
                             fontWeight: '600',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
                         }}
                     >
                         <Settings size={15} /> {isEditingMarket ? '설정 닫기' : '운영시간/모드 변경'}
                     </button>
+
+                    {isEditingMarket && (
+                        <div style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 10px)',
+                            right: 0,
+                            zIndex: 50,
+                            background: '#ffffff',
+                            padding: '16px 20px',
+                            borderRadius: '14px',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.05)',
+                            minWidth: '420px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '14px',
+                            animation: 'popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+                                <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1e293b' }}>⚙️ 시장 운영시간 및 모드 설정</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingMarket(false)}
+                                    style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSaveMarketSettings} style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px'
+                            }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>운영 모드</label>
+                                    <select
+                                        value={editMode}
+                                        onChange={(e) => setEditMode(e.target.value)}
+                                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                    >
+                                        <option value="AUTO">자동 스케줄 (실제 주식 장 시간표 준수)</option>
+                                        <option value="MANUAL">수동 제어 (교사 직접 개/폐 조작)</option>
+                                    </select>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>개장 시간</label>
+                                        <input
+                                            type="time"
+                                            value={editOpenTime}
+                                            onChange={(e) => setEditOpenTime(e.target.value)}
+                                            style={{ padding: '7px 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                            required
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>마감 시간</label>
+                                        <input
+                                            type="time"
+                                            value={editCloseTime}
+                                            onChange={(e) => setEditCloseTime(e.target.value)}
+                                            style={{ padding: '7px 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    style={{
+                                        marginTop: '4px',
+                                        padding: '9px',
+                                        background: '#3b82f6',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)'
+                                    }}
+                                >
+                                    설정 적용 및 저장
+                                </button>
+                            </form>
+                        </div>
+                    )}
                 </div>
-
-                {isEditingMarket && (
-                    <form onSubmit={handleSaveMarketSettings} style={{
-                        width: '100%',
-                        marginTop: '12px',
-                        paddingTop: '12px',
-                        borderTop: '1px dashed #e2e8f0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '12px'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>운영 모드:</label>
-                            <select
-                                value={editMode}
-                                onChange={(e) => setEditMode(e.target.value)}
-                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                            >
-                                <option value="AUTO">자동 스케줄 (실제 주식 장 시간표 준수)</option>
-                                <option value="MANUAL">수동 제어 (교사 직접 개/폐 조작)</option>
-                            </select>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>개장 시간:</label>
-                            <input
-                                type="time"
-                                value={editOpenTime}
-                                onChange={(e) => setEditOpenTime(e.target.value)}
-                                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                                required
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>마감 시간:</label>
-                            <input
-                                type="time"
-                                value={editCloseTime}
-                                onChange={(e) => setEditCloseTime(e.target.value)}
-                                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                                required
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            style={{
-                                padding: '6px 14px',
-                                background: '#3b82f6',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontWeight: '700',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            적용 저장
-                        </button>
-                    </form>
-                )}
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="admin-tabs">
-                <button
-                    className={`tab-btn ${activeTab === 'students' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('students')}
-                >
-                    <Users size={18} /> 학생 관리 ({students.length})
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'stocks' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('stocks')}
-                >
-                    <TrendingUp size={18} /> 주식 종목 관리 ({stocks.length})
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'coupons' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('coupons')}
-                >
-                    <Store size={18} /> 쿠폰 상품 관리 ({coupons.length})
-                </button>
+            {/* Navigation Tabs & Action Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--bg-panel-border, #e2e8f0)', paddingBottom: '0.5rem' }}>
+                <div className="admin-tabs" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                    <button
+                        className={`tab-btn ${activeTab === 'students' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('students')}
+                    >
+                        <Users size={18} /> 학생 관리 ({students.length})
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'stocks' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('stocks')}
+                    >
+                        <TrendingUp size={18} /> 주식 종목 관리 ({stocks.length})
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'coupons' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('coupons')}
+                    >
+                        <Store size={18} /> 쿠폰 상품 관리 ({coupons.length})
+                    </button>
+                </div>
+                {activeTab === 'stocks' && (
+                    <button
+                        onClick={() => handleOpenStockModal(null)}
+                        style={{
+                            padding: '8px 16px',
+                            background: '#0284c7',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '0.9rem',
+                            boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
+                        }}
+                    >
+                        <Plus size={16} /> 신규 종목 상장
+                    </button>
+                )}
             </div>
 
             {/* Error Banner */}
@@ -621,7 +671,7 @@ const AdminDashboard = ({ initialTab }) => {
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map((s) => (
-                                            <tr 
+                                             <tr 
                                                 key={s.id || s.studentId}
                                                 style={{ cursor: 'pointer' }}
                                                 onClick={() => navigate(`/students/${s.studentId}`)}
@@ -671,27 +721,6 @@ const AdminDashboard = ({ initialTab }) => {
             {/* Tab 2: Stocks Management */}
             {activeTab === 'stocks' && (
                 <div className="tab-content">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '16px 24px', background: '#ffffff', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <span style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#1e293b' }}>시장 상태:</span>
-                            <span className={`badge ${marketOpen ? 'badge-success' : 'badge-danger'}`} style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                {marketOpen ? '🟢 실시간 개장 중' : '🔴 장 휴장 중'}
-                            </span>
-                            <button 
-                                onClick={handleToggleMarket}
-                                style={{ padding: '6px 14px', background: marketOpen ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
-                            >
-                                {marketOpen ? '🔒 장 휴장하기' : '🔓 시장 개장하기'}
-                            </button>
-                        </div>
-                        <button 
-                            onClick={() => handleOpenStockModal(null)}
-                            style={{ padding: '10px 18px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}
-                        >
-                            ➕ 신규 종목 상장
-                        </button>
-                    </div>
-
                     <div className="table-container glass-panel">
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
