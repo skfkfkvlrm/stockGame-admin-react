@@ -28,6 +28,7 @@ const AdminDashboard = ({ initialTab }) => {
     const mode = useMarketStore((state) => state.mode);
     const openTime = useMarketStore((state) => state.openTime);
     const closeTime = useMarketStore((state) => state.closeTime);
+    const callAuctionStartTime = useMarketStore((state) => state.callAuctionStartTime);
     const statusCode = useMarketStore((state) => state.statusCode);
     const fetchMarketStatus = useMarketStore((state) => state.fetchMarketStatus);
     const toggleMarketStatus = useMarketStore((state) => state.toggleMarketStatus);
@@ -37,6 +38,8 @@ const AdminDashboard = ({ initialTab }) => {
     const [editMode, setEditMode] = useState('AUTO');
     const [editOpenTime, setEditOpenTime] = useState('09:00');
     const [editCloseTime, setEditCloseTime] = useState('15:30');
+    const [editCallAuctionStartTime, setEditCallAuctionStartTime] = useState('15:20');
+    const [isExecutingAuction, setIsExecutingAuction] = useState(false);
 
     useEffect(() => {
         fetchMarketStatus().then((data) => {
@@ -44,6 +47,7 @@ const AdminDashboard = ({ initialTab }) => {
                 setEditMode(data.mode || 'AUTO');
                 setEditOpenTime(data.openTime || '09:00');
                 setEditCloseTime(data.closeTime || '15:30');
+                setEditCallAuctionStartTime(data.callAuctionStartTime || '15:20');
             }
         });
     }, []);
@@ -54,7 +58,8 @@ const AdminDashboard = ({ initialTab }) => {
             await updateMarketSettings({
                 mode: editMode,
                 openTime: editOpenTime,
-                closeTime: editCloseTime
+                closeTime: editCloseTime,
+                callAuctionStartTime: editCallAuctionStartTime
             });
             alert('시장 운영 설정이 성공적으로 업데이트되었습니다!');
             setIsEditingMarket(false);
@@ -70,6 +75,22 @@ const AdminDashboard = ({ initialTab }) => {
             alert(`주식 시장이 [${data?.marketOpen ? '수동 개장' : '수동 점검(휴장)'}] 상태로 전환되었습니다.`);
         } catch (err) {
             alert('시장 상태 변경 실패');
+        }
+    };
+
+    const handleExecuteClosingAuction = async () => {
+        if (!window.confirm('장 마감 동시호가 단일가 일괄 체결을 지금 즉시 실행하시겠습니까?\n대기 중인 매수/매도 호가가 단일가로 체결됩니다.')) {
+            return;
+        }
+        setIsExecutingAuction(true);
+        try {
+            const res = await api.post('/stock/admin/market/execute-closing-auction');
+            alert(res.data?.message || '동시호가 단일가 일괄 체결이 완료되었습니다!');
+            fetchData();
+        } catch (err) {
+            alert(err.response?.data?.message || '동시호가 일괄 체결 실행 실패');
+        } finally {
+            setIsExecutingAuction(false);
         }
     };
 
@@ -397,7 +418,7 @@ const AdminDashboard = ({ initialTab }) => {
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: '#1e293b' }}>
-                                시장 관제 상태: {marketOpen ? '🟢 정규장 거래 진행중' : '🔴 장 휴장/마감'}
+                                시장 관제 상태: {statusCode === 'CALL_AUCTION' ? '🟡 장 마감 동시호가 접수중' : marketOpen ? '🟢 정규장 거래 진행중' : '🔴 장 휴장/마감'}
                             </h3>
                             <span style={{
                                 fontSize: '0.75rem',
@@ -411,12 +432,32 @@ const AdminDashboard = ({ initialTab }) => {
                             </span>
                         </div>
                         <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                            운영 시간표: 평일 {openTime} ~ {closeTime} (주말/장외 자동 차단)
+                            운영 시간표: 평일 {openTime} ~ {closeTime} (동시호가: {callAuctionStartTime || '15:20'}~)
                         </p>
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+                    <button
+                        onClick={handleExecuteClosingAuction}
+                        disabled={isExecutingAuction}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: '#fef3c7',
+                            color: '#b45309',
+                            border: '1px solid #fde68a',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <RefreshCw size={15} className={isExecutingAuction ? 'spin' : ''} />
+                        동시호가 일괄 체결 실행
+                    </button>
                     <button
                         onClick={handleToggleMarket}
                         style={{
@@ -501,13 +542,23 @@ const AdminDashboard = ({ initialTab }) => {
                                     </select>
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                         <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>개장 시간</label>
                                         <input
                                             type="time"
                                             value={editOpenTime}
                                             onChange={(e) => setEditOpenTime(e.target.value)}
+                                            style={{ padding: '7px 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                            required
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>동시호가 시작</label>
+                                        <input
+                                            type="time"
+                                            value={editCallAuctionStartTime}
+                                            onChange={(e) => setEditCallAuctionStartTime(e.target.value)}
                                             style={{ padding: '7px 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
                                             required
                                         />
