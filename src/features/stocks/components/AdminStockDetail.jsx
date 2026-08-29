@@ -38,18 +38,32 @@ const AdminStockDetail = () => {
 
             const initialPrice = info.nowPrice ?? info.pubPrice ?? 0;
             const rawHistory = Array.isArray(historyRes.data?.data) ? historyRes.data.data : [];
-            const mappedHistory = rawHistory.map(item => {
+            
+            // 일별 거래 기록 OHLC 집계 (중복 날짜 라벨 방지)
+            const dayGroups = {};
+            rawHistory.forEach(item => {
                 const d = item.baseDate || item.date || item.createdDate;
+                const dateKey = d ? new Date(d).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
                 const p = item.closePrice ?? item.price ?? initialPrice;
                 const open = item.openPrice ?? p;
                 const high = item.highPrice ?? Math.max(open, p);
                 const low = item.lowPrice ?? Math.min(open, p);
                 const close = item.closePrice ?? p;
-                return {
-                    x: d ? new Date(d).getTime() : Date.now(),
-                    y: [open, high, low, close]
-                };
+                const time = new Date(`${dateKey}T12:00:00`).getTime();
+
+                if (!dayGroups[dateKey]) {
+                    dayGroups[dateKey] = { x: time, open, high, low, close };
+                } else {
+                    dayGroups[dateKey].high = Math.max(dayGroups[dateKey].high, high);
+                    dayGroups[dateKey].low = Math.min(dayGroups[dateKey].low, low);
+                    dayGroups[dateKey].close = close;
+                }
             });
+
+            const mappedHistory = Object.values(dayGroups).map(g => ({
+                x: g.x,
+                y: [g.open, g.high, g.low, g.close]
+            }));
             setChartData([{ data: mappedHistory }]);
 
         } catch (err) {
@@ -76,7 +90,15 @@ const AdminStockDetail = () => {
         },
         theme: { mode: 'light' },
         plotOptions: { candlestick: { colors: { upward: '#ef4444', downward: '#3b82f6' } } },
-        xaxis: { type: 'datetime', labels: { style: { colors: '#64748b' } } },
+        xaxis: { 
+            type: 'datetime', 
+            tickAmount: 5,
+            labels: { 
+                style: { colors: '#64748b' },
+                datetimeUTC: false,
+                format: 'MM/dd'
+            } 
+        },
         yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => `${v.toLocaleString()}원` } },
         grid: { 
             borderColor: '#cbd5e1', 
