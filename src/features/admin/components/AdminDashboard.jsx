@@ -40,6 +40,24 @@ const AdminDashboard = ({ initialTab }) => {
     const [editCloseTime, setEditCloseTime] = useState('15:30');
     const [editCallAuctionStartTime, setEditCallAuctionStartTime] = useState('15:20');
     const [isExecutingAuction, setIsExecutingAuction] = useState(false);
+    const marketSettingsRef = React.useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (marketSettingsRef.current && !marketSettingsRef.current.contains(event.target)) {
+                setIsEditingMarket(false);
+            }
+        };
+
+        if (isEditingMarket) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isEditingMarket]);
 
     useEffect(() => {
         fetchMarketStatus().then((data) => {
@@ -477,6 +495,7 @@ const AdminDashboard = ({ initialTab }) => {
                         {marketOpen ? <Pause size={15} /> : <Play size={15} />}
                         {marketOpen ? '강제 수동 일시정지' : '강제 수동 즉시 개장'}
                     </button>
+                    <div style={{ position: 'relative' }} ref={marketSettingsRef}>
                     <button
                         onClick={() => setIsEditingMarket(!isEditingMarket)}
                         style={{
@@ -595,6 +614,7 @@ const AdminDashboard = ({ initialTab }) => {
                             </form>
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
 
