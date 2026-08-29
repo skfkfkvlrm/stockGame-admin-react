@@ -197,6 +197,14 @@
 
 .activity-tab-body {
     padding: 20px;
+    overflow-x: auto;           /* ← 탭 내 테이블 가로 스크롤 */
+    scrollbar-gutter: stable;
+}
+
+/* Holdings Table Scroll Wrapper */
+.holdings-table-wrapper {
+    overflow-x: auto;
+    scrollbar-gutter: stable;
 }
 
 /* Common Table Styles */
@@ -204,6 +212,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
+    min-width: 480px;           /* ← 가로 스크롤 발생 기준 */
 }
 
 .detail-table th {
@@ -223,4 +232,21 @@
 
 .detail-table tr:hover {
     background: #f8fafc;
+}
+
+/* Modal */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-content {
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
 }

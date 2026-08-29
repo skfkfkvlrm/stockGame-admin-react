@@ -39,20 +39,21 @@ const AdminStockDetail = () => {
             const initialPrice = info.nowPrice ?? info.pubPrice ?? 0;
             const rawHistory = Array.isArray(historyRes.data?.data) ? historyRes.data.data : [];
             
-            // 일별 거래 기록 OHLC 집계 (중복 날짜 라벨 방지)
+            // 일별 거래 기록 OHLC 집계 (category x축용 문자열 라벨)
             const dayGroups = {};
             rawHistory.forEach(item => {
                 const d = item.baseDate || item.date || item.createdDate;
-                const dateKey = d ? new Date(d).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+                const dateObj = new Date(d || Date.now());
+                const dateKey = d ? dateObj.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+                const label = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
                 const p = item.closePrice ?? item.price ?? initialPrice;
                 const open = item.openPrice ?? p;
                 const high = item.highPrice ?? Math.max(open, p);
                 const low = item.lowPrice ?? Math.min(open, p);
                 const close = item.closePrice ?? p;
-                const time = new Date(`${dateKey}T12:00:00`).getTime();
 
                 if (!dayGroups[dateKey]) {
-                    dayGroups[dateKey] = { x: time, open, high, low, close };
+                    dayGroups[dateKey] = { label, rawTime: dateObj.getTime(), open, high, low, close };
                 } else {
                     dayGroups[dateKey].high = Math.max(dayGroups[dateKey].high, high);
                     dayGroups[dateKey].low = Math.min(dayGroups[dateKey].low, low);
@@ -60,10 +61,11 @@ const AdminStockDetail = () => {
                 }
             });
 
-            const mappedHistory = Object.values(dayGroups).map(g => ({
-                x: g.x,
-                y: [g.open, g.high, g.low, g.close]
-            }));
+            // 실제 거래일만 정렬하여 표시 (관리자 차트는 전체 기간 표시)
+            const mappedHistory = Object.values(dayGroups)
+                .sort((a, b) => a.rawTime - b.rawTime)
+                .map(g => ({ x: g.label, y: [g.open, g.high, g.low, g.close] }));
+
             setChartData([{ data: mappedHistory }]);
 
         } catch (err) {
@@ -91,12 +93,10 @@ const AdminStockDetail = () => {
         theme: { mode: 'light' },
         plotOptions: { candlestick: { colors: { upward: '#ef4444', downward: '#3b82f6' } } },
         xaxis: { 
-            type: 'datetime', 
-            tickAmount: 5,
+            type: 'category',
             labels: { 
                 style: { colors: '#64748b' },
-                datetimeUTC: false,
-                format: 'MM/dd'
+                hideOverlappingLabels: true,
             } 
         },
         yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => `${v.toLocaleString()}원` } },

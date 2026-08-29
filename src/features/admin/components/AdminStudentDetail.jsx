@@ -294,32 +294,34 @@ const AdminStudentDetail = () => {
                             현재 보유 중인 주식 종목이 없습니다.
                         </div>
                     ) : (
-                        <table className="detail-table">
-                            <thead>
-                                <tr>
-                                    <th>종목명</th>
-                                    <th>보유 수량</th>
-                                    <th>현재가</th>
-                                    <th>총 평가액</th>
-                                    <th>손익</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {myStocks.map((stk, idx) => (
-                                    <tr key={idx}>
-                                        <td style={{ fontWeight: '700' }}>{stk.stockName}</td>
-                                        <td>{stk.amount} 주</td>
-                                        <td>{(stk.currentPrice || 0).toLocaleString()} P</td>
-                                        <td style={{ fontWeight: '700' }}>
-                                            {((stk.amount || 0) * (stk.currentPrice || 0)).toLocaleString()} P
-                                        </td>
-                                        <td style={{ fontWeight: '700', color: (stk.profit || 0) >= 0 ? '#ef4444' : '#3b82f6' }}>
-                                            {(stk.profit || 0) > 0 ? '+' : ''}{(stk.profit || 0).toLocaleString()} P
-                                        </td>
+                        <div className="holdings-table-wrapper">
+                            <table className="detail-table">
+                                <thead>
+                                    <tr>
+                                        <th>종목명</th>
+                                        <th>보유 수량</th>
+                                        <th>현재가</th>
+                                        <th>총 평가액</th>
+                                        <th>손익</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {myStocks.map((stk, idx) => (
+                                        <tr key={idx}>
+                                            <td style={{ fontWeight: '700' }}>{stk.stockName}</td>
+                                            <td>{stk.amount} 주</td>
+                                            <td>{(stk.currentPrice || 0).toLocaleString()} P</td>
+                                            <td style={{ fontWeight: '700' }}>
+                                                {((stk.amount || 0) * (stk.currentPrice || 0)).toLocaleString()} P
+                                            </td>
+                                            <td style={{ fontWeight: '700', color: (stk.profit || 0) >= 0 ? '#ef4444' : '#3b82f6' }}>
+                                                {(stk.profit || 0) > 0 ? '+' : ''}{(stk.profit || 0).toLocaleString()} P
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             </div>
