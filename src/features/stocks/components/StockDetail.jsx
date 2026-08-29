@@ -66,10 +66,18 @@ const StockDetail = () => {
             }
 
             const rawHistory = Array.isArray(historyRes.data?.data) ? historyRes.data.data : [];
-            const mappedHistory = rawHistory.map(item => ({
-                x: item.date ? new Date(item.date).getTime() : Date.now(),
-                y: [item.price ?? initialPrice, item.price ?? initialPrice, item.price ?? initialPrice, item.price ?? initialPrice]
-            }));
+            const mappedHistory = rawHistory.map(item => {
+                const d = item.baseDate || item.date || item.createdDate;
+                const p = item.closePrice ?? item.price ?? initialPrice;
+                const open = item.openPrice ?? p;
+                const high = item.highPrice ?? Math.max(open, p);
+                const low = item.lowPrice ?? Math.min(open, p);
+                const close = item.closePrice ?? p;
+                return {
+                    x: d ? new Date(d).getTime() : Date.now(),
+                    y: [open, high, low, close]
+                };
+            });
             setChartData([{ data: mappedHistory }]);
 
             const aggregateOrders = (orders) => {
@@ -214,7 +222,13 @@ const StockDetail = () => {
         plotOptions: { candlestick: { colors: { upward: '#ff4757', downward: '#3b82f6' } } },
         xaxis: { type: 'datetime', labels: { style: { colors: '#64748b' } } },
         yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => v.toLocaleString() } },
-        grid: { borderColor: 'rgba(0,0,0,0.05)' }
+        grid: { 
+            borderColor: '#cbd5e1', 
+            strokeDashArray: 3,
+            opacity: 0.8,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        }
     };
 
     const maxOrderAmount = Math.max(
