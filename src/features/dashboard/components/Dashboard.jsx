@@ -14,7 +14,13 @@ const chartOptions = {
     stroke: { curve: 'smooth', width: 3 },
     xaxis: { categories: ['1일', '2일', '3일', '4일', '5일', '6일', '오늘'], axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8' } } },
     yaxis: { labels: { style: { colors: '#94a3b8' }, formatter: (value) => value.toLocaleString() } },
-    grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 4 },
+    grid: { 
+        borderColor: '#cbd5e1', 
+        strokeDashArray: 3,
+        opacity: 0.8,
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } }
+    },
     theme: { mode: 'light' }
 };
 
