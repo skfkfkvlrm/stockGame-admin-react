@@ -1,20 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './features/core/layout/MainLayout';
 import Login from './features/auth/components/Login';
-import Dashboard from './features/dashboard/components/Dashboard';
-import StockList from './features/stocks/components/StockList';
-import StockDetail from './features/stocks/components/StockDetail';
-import NewsList from './features/news/components/NewsList';
-import PointsHistory from './features/points/components/PointsHistory';
-import CouponStore from './features/coupons/components/CouponStore';
 import AdminDashboard from './features/admin/components/AdminDashboard';
 import AdminStockDetail from './features/stocks/components/AdminStockDetail';
 import AdminStudentDetail from './features/admin/components/AdminStudentDetail';
 import RequireAdmin from './features/auth/components/RequireAdmin';
-import RankingList from './features/ranking/components/RankingList';
 import useAuthStore from './features/auth/store/useAuthStore';
-import { useEffect } from 'react';
 import './App.css';
 
 const RequireAuth = ({ children }) => {
