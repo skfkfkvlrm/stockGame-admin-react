@@ -563,7 +563,7 @@ const AdminDashboard = ({ initialTab }) => {
                             transition: 'all 0.15s ease'
                         }}
                     >
-                        <Settings size={15} /> {isEditingMarket ? '설정 닫기' : '운영시간/모드 변경'}
+                        <Settings size={15} /> 운영시간/모드 변경
                     </button>
 
                     {isEditingMarket && (
