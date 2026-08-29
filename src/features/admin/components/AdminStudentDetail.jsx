@@ -445,8 +445,8 @@ const AdminStudentDetail = () => {
 
             {/* Point Adjustment Modal */}
             {pointModalOpen && (
-                <div className="modal-backdrop">
-                    <div className="modal-content glass-panel" style={{ maxWidth: '420px', padding: '24px', background: '#ffffff', borderRadius: '16px' }}>
+                <div className="modal-backdrop" onClick={() => setPointModalOpen(false)}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px', padding: '24px', background: '#ffffff', borderRadius: '16px' }}>
                         <h2 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '12px' }}>
                             💰 {studentData.name} 학생 포인트 관리
                         </h2>
