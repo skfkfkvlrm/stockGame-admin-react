@@ -68,6 +68,16 @@ const CouponStore = () => {
             alert('포인트가 부족합니다!');
             return;
         }
+
+        const confirmMsg = `[쿠폰 구매 확인]\n\n` +
+            `• 구매 쿠폰: ${coupon.name}\n` +
+            `• 차감 포인트: ${Number(coupon.price).toLocaleString()} P\n` +
+            `• 구매 후 잔여 포인트: ${(user.totalPoint - coupon.price).toLocaleString()} P\n\n` +
+            `정말로 이 쿠폰을 구매하시겠습니까?\n(구매 후 포인트는 즉시 차감됩니다.)`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
         
         setIsSubmitting(true);
         try {

@@ -228,14 +228,14 @@ const Dashboard = () => {
                 <div className="glass-panel stat-card">
                     <div className="stat-header">
                         <div className="stat-icon-wrapper purple"><Wallet size={20} /></div>
-                        <h3>총 자산 (포인트 + 주식)</h3>
+                        <h3>총 순자산 (Total Assets)</h3>
                     </div>
                     <div className="stat-value">{totalAsset.toLocaleString()} <span className="currency">P</span></div>
                 </div>
                 <div className="stat-card stat-card-profit">
                     <div className="stat-header">
                         <div className="stat-icon-wrapper red"><TrendingUp size={20} /></div>
-                        <h3>평가 손익</h3>
+                        <h3>투자 평가 손익 (Profit)</h3>
                     </div>
                     <div className={`stat-value ${totalProfit > 0 ? 'profit-up' : totalProfit < 0 ? 'profit-down' : ''}`}>
                         {totalProfit > 0 ? '+' : ''}{totalProfit.toLocaleString()} <span className="currency">P</span>
@@ -244,7 +244,7 @@ const Dashboard = () => {
                 <div className="glass-panel stat-card">
                     <div className="stat-header">
                         <div className="stat-icon-wrapper blue"><Activity size={20} /></div>
-                        <h3>주문 가능 포인트</h3>
+                        <h3>보유 현금 포인트 (Cash)</h3>
                     </div>
                     <div className="stat-value">{availablePoints.toLocaleString()} <span className="currency">P</span></div>
                 </div>
