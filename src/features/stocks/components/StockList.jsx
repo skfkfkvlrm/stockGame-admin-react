@@ -32,6 +32,25 @@ const StockList = () => {
     const ALL_SECTORS = ['간식/매점', '게임/콘텐츠', '엔터/미디어', '문구/학용품', '스포츠/취미', '미래기술/IT'];
     const [selectedSectors, setSelectedSectors] = useState(['전체']);
     const [sortOption, setSortOption] = useState('NONE'); // 'ASC', 'DESC', 'VOLUME', 'NONE'
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const filterRef = React.useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (filterRef.current && !filterRef.current.contains(event.target)) {
+                setIsFilterOpen(false);
+            }
+        };
+
+        if (isFilterOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isFilterOpen]);
 
     const handleSectorClick = (sector) => {
         if (sector === '전체') {
@@ -272,13 +291,13 @@ const StockList = () => {
                 <table className="stock-table">
                     <thead>
                         <tr>
-                            <th>종목명 (코드)</th>
+                            <th>종목</th>
                             <th>분야</th>
                             <th>현재가</th>
-                            <th>전일대비</th>
+                            <th>전일비</th>
                             <th>등락률</th>
-                            <th>발행 잔량</th>
-                            <th>거래량 (체결)</th>
+                            <th>발행량</th>
+                            <th>거래량</th>
                             <th>액션</th>
                         </tr>
                     </thead>
