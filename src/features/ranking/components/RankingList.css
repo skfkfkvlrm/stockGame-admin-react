@@ -201,25 +201,39 @@
 
 .leaderboard-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     text-align: left;
+    min-width: 700px;
+}
+
+.leaderboard-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
 }
 
 .leaderboard-table th {
-    background: #1e293b;
+    position: sticky;
+    top: 0;
+    background: #1e293b !important;
     color: #f8fafc;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.875rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #334155;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 2px solid #334155;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
 }
 
 .leaderboard-table td {
-    padding: 1rem 1.25rem;
+    padding: 0.9rem 1.1rem;
     color: #1e293b;
     font-size: 0.9rem;
     font-weight: 500;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
 }
 
 .leaderboard-table tr.my-row {

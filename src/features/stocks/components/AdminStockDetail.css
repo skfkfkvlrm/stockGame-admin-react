@@ -195,6 +195,7 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    min-width: 650px;
 }
 
 .admin-tx-table th {
@@ -203,15 +204,17 @@
     font-size: 0.85rem;
     font-weight: 700;
     text-align: left;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
 }
 
 .admin-tx-table td {
-    padding: 16px;
+    padding: 12px 14px;
     font-size: 0.9rem;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
 }
 
 .admin-tx-table tr:hover td {

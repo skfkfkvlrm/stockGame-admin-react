@@ -188,16 +188,18 @@
 
 .table-container {
     border-radius: 14px;
-    overflow: hidden;
+    overflow-x: auto;
     background: #ffffff;
     border: 1px solid var(--bg-panel-border, rgba(0,0,0,0.08));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    scrollbar-gutter: stable;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
+    min-width: 780px;
 }
 
 .admin-table th {
@@ -205,16 +207,18 @@
     color: #ffffff;
     font-weight: 600;
     font-size: 0.85rem;
-    padding: 1rem 1.25rem;
+    padding: 0.9rem 1.1rem;
     border-bottom: 1px solid #334155;
+    white-space: nowrap;
 }
 
 .admin-table td {
-    padding: 1rem 1.25rem;
+    padding: 0.9rem 1.1rem;
     color: #1e293b;
     font-size: 0.9rem;
     font-weight: 500;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
 }
 
 .admin-table tbody tr:hover {
