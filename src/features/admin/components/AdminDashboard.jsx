@@ -88,6 +88,10 @@ const AdminDashboard = ({ initialTab }) => {
     };
 
     const handleToggleMarket = async () => {
+        const nextAction = marketOpen ? '강제 수동 점검(휴장)' : '강제 수동 즉시 개장';
+        if (!window.confirm(`주식 시장을 [${nextAction}] 상태로 변경하시겠습니까?\n모든 학생의 주문 접수 가능 여부에 즉시 영향을 줍니다.`)) {
+            return;
+        }
         try {
             const data = await toggleMarketStatus();
             alert(`주식 시장이 [${data?.marketOpen ? '수동 개장' : '수동 점검(휴장)'}] 상태로 전환되었습니다.`);
@@ -173,6 +177,17 @@ const AdminDashboard = ({ initialTab }) => {
             return;
         }
 
+        const confirmMsg = `[학생 계정 생성]\n\n` +
+            `• 이름: ${studentForm.name}\n` +
+            `• 아이디: ${studentForm.studentId}\n` +
+            `• 소속: ${studentForm.grade}학년 ${studentForm.className}반 ${studentForm.classNumber}번\n` +
+            `• 초기 지급 포인트: 100,000 P\n\n` +
+            `위 정보로 신규 학생 계정을 생성하시겠습니까?`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
         try {
             const res = await api.post('/members/join', {
                 studentId: studentForm.studentId,
@@ -244,6 +259,17 @@ const AdminDashboard = ({ initialTab }) => {
             return;
         }
 
+        const actionText = couponModal.mode === 'create' ? '신규 등록' : '정보 수정';
+        const confirmMsg = `[쿠폰 상품 ${actionText}]\n\n` +
+            `• 쿠폰명: ${couponForm.name}\n` +
+            `• 판매 가격: ${Number(couponForm.price).toLocaleString()} P\n` +
+            `• 판매 상태: ${couponForm.status === 'ON_SALE' ? '판매중' : '판매중지'}\n\n` +
+            `쿠폰 정보를 DB에 반영하시겠습니까?`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
         try {
             if (couponModal.mode === 'create') {
                 await api.post('/admin/coupons', {
@@ -306,6 +332,18 @@ const AdminDashboard = ({ initialTab }) => {
             return;
         }
 
+        const actionText = stockModal.mode === 'create' ? '신규 상장' : '정보 수정';
+        const confirmMsg = `[주식 종목 ${actionText}]\n\n` +
+            `• 종목명: ${stockForm.name}\n` +
+            `• 발행가: ${Number(stockForm.publicationPrice || 0).toLocaleString()} P\n` +
+            `• 발행 잔량: ${Number(stockForm.publicationBalance || 0).toLocaleString()} 주\n` +
+            `• 상장 상태: ${stockForm.status === 'LISTED' ? '상장/거래가능' : '거래정지'}\n\n` +
+            `주식 종목 정보를 DB에 반영하시겠습니까?`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
         try {
             if (stockModal.mode === 'create') {
                 await api.post('/admin/stocks', {
@@ -362,7 +400,19 @@ const AdminDashboard = ({ initialTab }) => {
             return;
         }
 
+        const actionText = pointType === 'add' ? '지급' : '차감';
         const finalAmount = pointType === 'add' ? Number(pointAmount) : -Number(pointAmount);
+
+        const confirmMsg = `[학생 포인트 수동 ${actionText}]\n\n` +
+            `• 대상 학생: ${pointModalStudent.name} (${pointModalStudent.studentId})\n` +
+            `• ${actionText} 포인트: ${Number(pointAmount).toLocaleString()} P\n` +
+            `• 사유: ${pointReason || '(사유 없음)'}\n\n` +
+            `해당 학생의 포인트를 즉시 ${actionText}하시겠습니까?`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
@@ -370,7 +420,7 @@ const AdminDashboard = ({ initialTab }) => {
                 amount: finalAmount,
                 reason: pointReason
             });
-            alert(`${pointModalStudent.name} 학생에게 포인트 ${pointType === 'add' ? '지급' : '차감'}이 완료되었습니다.`);
+            alert(`${pointModalStudent.name} 학생에게 포인트 ${actionText}이 완료되었습니다.`);
             setPointModalStudent(null);
             fetchData();
         } catch (err) {

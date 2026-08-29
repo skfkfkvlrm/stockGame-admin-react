@@ -78,7 +78,19 @@ const AdminStudentDetail = () => {
             return;
         }
 
+        const actionText = pointType === 'add' ? '지급' : '차감';
         const finalAmount = pointType === 'add' ? Number(pointAmount) : -Number(pointAmount);
+
+        const confirmMsg = `[학생 포인트 수동 ${actionText}]\n\n` +
+            `• 대상 학생: ${studentData?.name || studentId} (${studentId})\n` +
+            `• ${actionText} 포인트: ${Number(pointAmount).toLocaleString()} P\n` +
+            `• 사유: ${pointReason || (pointType === 'add' ? '교사 수동 지급' : '교사 수동 차감')}\n\n` +
+            `해당 학생의 포인트를 즉시 ${actionText}하시겠습니까?`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
         setIsSubmittingPoint(true);
 
         try {
@@ -86,7 +98,7 @@ const AdminStudentDetail = () => {
                 amount: finalAmount,
                 reason: pointReason || (pointType === 'add' ? '교사 수동 지급' : '교사 수동 차감')
             });
-            alert(`${studentData?.name || studentId} 학생에게 포인트 ${pointType === 'add' ? '지급' : '차감'}이 완료되었습니다.`);
+            alert(`${studentData?.name || studentId} 학생에게 포인트 ${actionText}이 완료되었습니다.`);
             setPointModalOpen(false);
             setPointAmount('');
             setPointReason('');
