@@ -165,6 +165,34 @@ const AdminDashboard = ({ initialTab }) => {
     const [stockModal, setStockModal] = useState(null); // null | { mode: 'create' } | { mode: 'edit', stock: st }
     const [stockForm, setStockForm] = useState({ name: '', content: '', publicationPrice: '', publicationBalance: '' });
 
+    const [delistModalStock, setDelistModalStock] = useState(null);
+    const [delistCompensation, setDelistCompensation] = useState('');
+    const [delistReason, setDelistReason] = useState('');
+    
+    const handleOpenDelistModal = (stock) => {
+        setDelistModalStock(stock);
+        setDelistCompensation('');
+        setDelistReason('');
+    };
+
+    const handleExecuteDelisting = async (e) => {
+        e.preventDefault();
+        const targetId = delistModalStock.stockId || delistModalStock.id;
+        
+        if (!window.confirm(`[경고] 정말로 '${delistModalStock.stockName || delistModalStock.name}' 종목을 영구 상장폐지하시겠습니까?\n이 작업은 절대 되돌릴 수 없습니다!`)) {
+            return;
+        }
+
+        try {
+            await api.delete(`/admin/stocks/${targetId}`);
+            alert(`'${delistModalStock.stockName || delistModalStock.name}' 종목이 상장폐지 처리되었습니다.`);
+            setDelistModalStock(null);
+            fetchData();
+        } catch (err) {
+            alert('상장폐지 처리 중 오류가 발생했습니다.');
+        }
+    };
+
     const handleOpenStudentModal = () => {
         setStudentModal({ mode: 'create' });
         setStudentForm({ studentId: '', password: '', name: '', grade: 5, className: '1', classNumber: 1 });
@@ -427,16 +455,8 @@ const AdminDashboard = ({ initialTab }) => {
     };
 
     const handleDeleteStock = async (stock) => {
-        if (!window.confirm(`정말로 '${stock.name}' 주식 종목을 상장폐지(삭제)하시겠습니까?`)) {
-            return;
-        }
-
-        try {
-            await api.delete("/admin/stocks/" + (stock.stockId || stock.id));
-            alert(`'${stock.name}' 종목이 상장폐지(삭제)되었습니다.`);
-            fetchData();
-        } catch (err) {
-            alert('주식 삭제 중 오류가 발생했습니다.');
+        if (window.confirm(`종목 상장폐지 및 원장 청산(Liquidation) 작업은 데이터 안전을 위해 [상장폐지 관리] 전용 탭에서 진행해야 합니다.\n\n해당 탭으로 이동하시겠습니까?`)) {
+            setActiveTab('delisting');
         }
     };
 
@@ -742,6 +762,13 @@ const AdminDashboard = ({ initialTab }) => {
                         onClick={() => setActiveTab('coupons')}
                     >
                         <Store size={18} /> 쿠폰 상품 관리 ({coupons.length})
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'delisting' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('delisting')}
+                        style={{ color: activeTab === 'delisting' ? '#ef4444' : '' }}
+                    >
+                        <AlertCircle size={18} /> 상장폐지 관리
                     </button>
                 </div>
                 {activeTab === 'stocks' && (
@@ -1064,6 +1091,96 @@ const AdminDashboard = ({ initialTab }) => {
                                 </tbody>
                             </table>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Tab 4: Delisting Management (상장폐지 관리) */}
+            {activeTab === 'delisting' && (
+                <div className="tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div className="glass-panel" style={{ padding: '20px', borderTop: '4px solid #ef4444' }}>
+                        <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <AlertCircle size={20} color="#ef4444" /> [섹션 A] 거래중 종목 ➡️ 상장폐지 처리
+                        </h2>
+                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>
+                            현재 시장에서 정상 거래 중인 종목들입니다. 상장폐지 시 미체결 호가는 전액 환불되며 취소할 수 없습니다.
+                        </p>
+                        <div className="table-container">
+                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '10%' }}>종목 ID</th>
+                                        <th style={{ width: '25%' }}>종목명</th>
+                                        <th style={{ width: '20%' }}>최초 발행가</th>
+                                        <th style={{ width: '20%' }}>현재 잔량</th>
+                                        <th style={{ width: '25%' }}>관리 액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {stocks.filter(st => st.status !== 'DELISTED').length > 0 ? (
+                                        stocks.filter(st => st.status !== 'DELISTED').map(st => (
+                                            <tr key={st.stockId || st.id}>
+                                                <td>#{st.stockId ?? st.id}</td>
+                                                <td className="font-bold" style={{ color: '#0284c7' }}>🔍 {st.stockName || st.name}</td>
+                                                <td className="font-bold">{(st.pubPrice ?? st.publicationPrice ?? 0).toLocaleString()} 원</td>
+                                                <td className="font-bold">{(st.pubAmount ?? st.publicationBalance ?? 0).toLocaleString()} 주</td>
+                                                <td>
+                                                    <button 
+                                                        style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                                                        onClick={() => handleOpenDelistModal(st)}
+                                                    >
+                                                        🔥 상장폐지 실행
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr><td colSpan="5" className="empty-row">거래 중인 종목이 없습니다.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="glass-panel" style={{ padding: '20px' }}>
+                        <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <ShieldCheck size={20} color="#64748b" /> [섹션 B] 상장폐지 청산 이력 (Audit History)
+                        </h2>
+                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>
+                            이미 상장폐지(청산) 처리가 완료된 종목들의 감사 내역입니다.
+                        </p>
+                        <div className="table-container">
+                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '10%' }}>ID</th>
+                                        <th style={{ width: '25%' }}>종목명</th>
+                                        <th style={{ width: '25%' }}>상장폐지 일시</th>
+                                        <th style={{ width: '20%' }}>보상 단가</th>
+                                        <th style={{ width: '20%' }}>상태</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {stocks.filter(st => st.status === 'DELISTED').length > 0 ? (
+                                        stocks.filter(st => st.status === 'DELISTED').map(st => (
+                                            <tr key={st.stockId || st.id}>
+                                                <td>#{st.stockId ?? st.id}</td>
+                                                <td className="font-bold" style={{ color: '#94a3b8', textDecoration: 'line-through' }}>{st.stockName || st.name}</td>
+                                                <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{st.delistedAt || '최근 (기록없음)'}</td>
+                                                <td className="font-bold text-accent">미지원 (추후 연동)</td>
+                                                <td>
+                                                    <span className="badge badge-danger" style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', background: '#ef4444', color: '#ffffff' }}>
+                                                        🔴 상장폐지 됨
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr><td colSpan="5" className="empty-row">상장폐지된 이력이 없습니다.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1513,6 +1630,71 @@ const AdminDashboard = ({ initialTab }) => {
                                     style={{ padding: '10px 22px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
                                 >
                                     등록 완료
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {/* Delist Modal */}
+            {delistModalStock && (
+                <div className="modal-overlay" onClick={() => setDelistModalStock(null)} style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()} style={{
+                        background: '#ffffff', borderRadius: '16px', padding: '32px', maxWidth: '480px', width: '90%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)', borderTop: '6px solid #ef4444'
+                    }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ef4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <AlertCircle size={24} /> 종목 영구 상장폐지 (Liquidation)
+                        </h2>
+                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '20px', lineHeight: '1.5' }}>
+                            <strong>[{delistModalStock.stockName || delistModalStock.name}]</strong> 종목을 상장폐지합니다.<br/>
+                            <span style={{ color: '#ef4444' }}>⚠️ 경고: 미체결 주문은 모두 취소되며 포인트로 환불됩니다.</span>
+                        </p>
+
+                        <form onSubmit={handleExecuteDelisting}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '6px' }}>
+                                    1주당 청산 보상 포인트 (옵션)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={delistCompensation}
+                                    onChange={(e) => setDelistCompensation(e.target.value)}
+                                    placeholder="0 (0원 입력 시 전액 손실 처리)"
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                                />
+                                <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>* 학생들의 보유 주식을 강제 소각할 때 지급할 위로금입니다.</p>
+                            </div>
+
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '6px' }}>
+                                    상장폐지 사유 (옵션)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={delistReason}
+                                    onChange={(e) => setDelistReason(e.target.value)}
+                                    placeholder="예: 실적 악화 및 상장 유지 조건 미달"
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setDelistModalStock(null)}
+                                    style={{ flex: 1, padding: '10px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{ flex: 2, padding: '10px', background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.2)' }}
+                                >
+                                    🔥 영구 상장폐지 실행
                                 </button>
                             </div>
                         </form>
