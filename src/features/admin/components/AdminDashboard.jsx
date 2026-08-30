@@ -877,42 +877,53 @@ const AdminDashboard = ({ initialTab }) => {
                                 </thead>
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((s, idx) => (
+                                        filteredStudents.map((s, idx) => {
+                                            const isDeleted = s.status === 'DELETED';
+                                            return (
                                              <tr 
                                                 key={s.id || s.studentId || idx}
-                                                style={{ cursor: 'pointer' }}
-                                                onClick={() => navigate(`/students/${s.studentId}`)}
+                                                style={{ cursor: isDeleted ? 'not-allowed' : 'pointer', opacity: isDeleted ? 0.6 : 1, background: isDeleted ? '#f1f5f9' : 'transparent' }}
+                                                onClick={() => { if (!isDeleted) navigate(`/students/${s.studentId}`); }}
                                             >
                                                 <td>#{s.id ?? s.rank ?? (idx + 1)}</td>
-                                                <td className="font-mono">{s.studentId}</td>
-                                                <td className="font-bold" style={{ color: '#2563eb' }}>{s.name}</td>
-                                                <td>{s.grade}학년 {s.className && s.className.includes('반') ? s.className : `${s.className || ''}반`} {s.classNumber}번</td>
-                                                <td className="font-bold text-accent">{s.totalPoint ? s.totalPoint.toLocaleString() : 0} P</td>
-                                                <td>{s.totalCoupon || 0} 개</td>
+                                                <td className="font-mono" style={{ textDecoration: isDeleted ? 'line-through' : 'none' }}>{s.studentId}</td>
+                                                <td className="font-bold" style={{ color: isDeleted ? '#94a3b8' : '#2563eb', textDecoration: isDeleted ? 'line-through' : 'none' }}>{s.name}</td>
+                                                <td style={{ textDecoration: isDeleted ? 'line-through' : 'none' }}>{s.grade}학년 {s.className && s.className.includes('반') ? s.className : `${s.className || ''}반`} {s.classNumber}번</td>
+                                                <td className="font-bold text-accent" style={{ textDecoration: isDeleted ? 'line-through' : 'none' }}>{s.totalPoint ? s.totalPoint.toLocaleString() : 0} P</td>
+                                                <td style={{ textDecoration: isDeleted ? 'line-through' : 'none' }}>{s.totalCoupon || 0} 개</td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                                                        <button 
-                                                            style={{ padding: '6px 10px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
-                                                            onClick={() => handleOpenPointModal(s)}
-                                                        >
-                                                            포인트
-                                                        </button>
-                                                        <button 
-                                                            style={{ padding: '6px 10px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
-                                                            onClick={() => navigate(`/students/${s.studentId}`)}
-                                                        >
-                                                            포트폴리오
-                                                        </button>
-                                                        <button 
-                                                            style={{ padding: '6px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
-                                                            onClick={() => handleDeleteStudent(s)}
-                                                        >
-                                                            삭제
-                                                        </button>
+                                                        {isDeleted ? (
+                                                            <span style={{ padding: '6px 12px', background: '#ef4444', color: 'white', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                                🔴 탈퇴 계정
+                                                            </span>
+                                                        ) : (
+                                                            <>
+                                                                <button 
+                                                                    style={{ padding: '6px 10px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                                                    onClick={() => handleOpenPointModal(s)}
+                                                                >
+                                                                    포인트
+                                                                </button>
+                                                                <button 
+                                                                    style={{ padding: '6px 10px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                                                    onClick={() => navigate(`/students/${s.studentId}`)}
+                                                                >
+                                                                    포트폴리오
+                                                                </button>
+                                                                <button 
+                                                                    style={{ padding: '6px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                                                    onClick={() => handleDeleteStudent(s)}
+                                                                >
+                                                                    삭제
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))
+                                        );
+                                        })
                                     ) : (
                                         <tr>
                                             <td colSpan="7" className="empty-row">조회된 학생 데이터가 없습니다.</td>
