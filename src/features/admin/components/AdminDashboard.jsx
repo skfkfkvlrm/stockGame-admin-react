@@ -834,13 +834,13 @@ const AdminDashboard = ({ initialTab }) => {
                             <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <thead>
                                     <tr>
-                                        <th style={{ width: '7%' }}>ID</th>
-                                        <th style={{ width: '13%' }}>학번</th>
-                                        <th style={{ width: '13%' }}>이름</th>
-                                        <th style={{ width: '18%' }}>학년 / 반 / 번호</th>
-                                        <th style={{ width: '16%' }}>총 보유 포인트</th>
-                                        <th style={{ width: '10%' }}>보유 쿠폰</th>
-                                        <th style={{ width: '23%' }}>관리 액션</th>
+                                        <th style={{ width: '6%' }}>ID</th>
+                                        <th style={{ width: '12%' }}>학번</th>
+                                        <th style={{ width: '12%' }}>이름</th>
+                                        <th style={{ width: '15%' }}>학년 / 반 / 번호</th>
+                                        <th style={{ width: '15%' }}>총 보유 포인트</th>
+                                        <th style={{ width: '9%' }}>보유 쿠폰</th>
+                                        <th style={{ width: '31%' }}>관리 액션</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -858,21 +858,21 @@ const AdminDashboard = ({ initialTab }) => {
                                                 <td className="font-bold text-accent">{s.totalPoint ? s.totalPoint.toLocaleString() : 0} P</td>
                                                 <td>{s.totalCoupon || 0} 개</td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                                                         <button 
-                                                            style={{ padding: '5px 8px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                                                            style={{ padding: '6px 10px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => handleOpenPointModal(s)}
                                                         >
                                                             포인트
                                                         </button>
                                                         <button 
-                                                            style={{ padding: '5px 8px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                                                            style={{ padding: '6px 10px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => navigate(`/students/${s.studentId}`)}
                                                         >
                                                             포트폴리오
                                                         </button>
                                                         <button 
-                                                            style={{ padding: '5px 8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                                                            style={{ padding: '6px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => handleDeleteStudent(s)}
                                                         >
                                                             삭제
@@ -903,24 +903,24 @@ const AdminDashboard = ({ initialTab }) => {
                             <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <thead>
                                     <tr>
-                                        <th style={{ width: '10%' }}>종목 ID</th>
-                                        <th style={{ width: '18%' }}>종목명</th>
-                                        <th style={{ width: '22%' }}>업종 / 설명</th>
-                                        <th style={{ width: '14%' }}>최초 발행 가격</th>
-                                        <th style={{ width: '14%' }}>현재 발행 잔량</th>
-                                        <th style={{ width: '12%' }}>상태</th>
-                                        <th style={{ width: '10%' }}>관리 액션</th>
+                                        <th style={{ width: '7%' }}>종목 ID</th>
+                                        <th style={{ width: '15%' }}>종목명</th>
+                                        <th style={{ width: '20%' }}>업종 / 설명</th>
+                                        <th style={{ width: '13%' }}>최초 발행 가격</th>
+                                        <th style={{ width: '12%' }}>현재 발행 잔량</th>
+                                        <th style={{ width: '15%' }}>상태</th>
+                                        <th style={{ width: '18%' }}>관리 액션</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {stocks.length > 0 ? (
                                         stocks.map((st) => (
-                                            <tr 
+                                             <tr 
                                                 key={st.stockId || st.id}
                                                 style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
                                                 onClick={() => navigate(`/stocks/${st.stockId || st.id}`)}
                                                 title="클릭하여 실시간 체결 내역 및 상세 모니터링 페이지로 이동"
-                                            >
+                                             >
                                                 <td>#{st.stockId ?? st.id}</td>
                                                  <td className="font-bold" style={{ color: '#0284c7' }}>🔍 {st.stockName || st.name}</td>
                                                 <td>{st.content}</td>
@@ -928,29 +928,29 @@ const AdminDashboard = ({ initialTab }) => {
                                                  <td className="font-bold text-highlight">{(st.pubAmount ?? st.publicationBalance ?? 0).toLocaleString()} 주</td>
                                                 <td>
                                                     {st.status === 'SUSPENDED' ? (
-                                                        <span className="badge badge-warning" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: '#f59e0b', color: '#ffffff' }}>
+                                                        <span className="badge badge-warning" style={{ padding: '6px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 'bold', background: '#f59e0b', color: '#ffffff', whiteSpace: 'nowrap' }}>
                                                             🟡 거래 정지
                                                         </span>
                                                     ) : st.status === 'DELISTED' ? (
-                                                        <span className="badge badge-danger" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: '#ef4444', color: '#ffffff' }}>
+                                                        <span className="badge badge-danger" style={{ padding: '6px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 'bold', background: '#ef4444', color: '#ffffff', whiteSpace: 'nowrap' }}>
                                                             🔴 상장 폐지
                                                         </span>
                                                     ) : (
-                                                        <span className="badge badge-success" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: '#10b981', color: '#ffffff' }}>
+                                                        <span className="badge badge-success" style={{ padding: '6px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 'bold', background: '#10b981', color: '#ffffff', whiteSpace: 'nowrap' }}>
                                                             🟢 정상 거래 중
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td onClick={(e) => e.stopPropagation()}>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap' }}>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '6px 10px', background: '#64748b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => handleOpenStockModal(st)}
                                                         >
                                                             ✏️ 수정
                                                         </button>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '6px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => handleDeleteStock(st)}
                                                         >
                                                             🗑️ 삭제
@@ -996,10 +996,10 @@ const AdminDashboard = ({ initialTab }) => {
                                 <thead>
                                     <tr>
                                         <th style={{ width: '16%' }}>일련번호</th>
-                                        <th style={{ width: '32%' }}>쿠폰 상품명</th>
+                                        <th style={{ width: '28%' }}>쿠폰 상품명</th>
                                         <th style={{ width: '18%' }}>판매 가격</th>
                                         <th style={{ width: '18%' }}>발행 상태</th>
-                                        <th style={{ width: '16%' }}>관리 액션</th>
+                                        <th style={{ width: '20%' }}>관리 액션</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1025,29 +1025,29 @@ const AdminDashboard = ({ initialTab }) => {
                                                 <td className="font-bold text-accent">{c.price ? c.price.toLocaleString() : 0} P</td>
                                                 <td>
                                                     {c.status === 'PAUSED' ? (
-                                                        <span className="badge badge-warning" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: '#f59e0b', color: '#ffffff' }}>
+                                                        <span className="badge badge-warning" style={{ padding: '6px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 'bold', background: '#f59e0b', color: '#ffffff', whiteSpace: 'nowrap' }}>
                                                             🟡 판매 일시중지
                                                         </span>
                                                     ) : c.status === 'SOLD_OUT' ? (
-                                                        <span className="badge badge-danger" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: '#ef4444', color: '#ffffff' }}>
+                                                        <span className="badge badge-danger" style={{ padding: '6px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 'bold', background: '#ef4444', color: '#ffffff', whiteSpace: 'nowrap' }}>
                                                             🔴 품절 / 마감
                                                         </span>
                                                     ) : (
-                                                        <span className="badge badge-info" style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: '#10b981', color: '#ffffff' }}>
+                                                        <span className="badge badge-info" style={{ padding: '6px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 'bold', background: '#10b981', color: '#ffffff', whiteSpace: 'nowrap' }}>
                                                             🟢 정상 판매 중
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap' }}>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '6px 10px', background: '#64748b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => handleOpenCouponModal(c)}
                                                         >
                                                             ✏️ 수정
                                                         </button>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '6px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
                                                             onClick={() => handleDeleteCoupon(c)}
                                                         >
                                                             🗑️ 삭제

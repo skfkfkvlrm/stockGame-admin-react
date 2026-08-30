@@ -227,6 +227,12 @@
     z-index: 2;
 }
 
+.admin-table th:last-child,
+.admin-table td:last-child {
+    overflow: visible;
+    padding-right: 12px;
+}
+
 .admin-table td {
     padding: 0.8rem 0.6rem;
     color: #1e293b;
