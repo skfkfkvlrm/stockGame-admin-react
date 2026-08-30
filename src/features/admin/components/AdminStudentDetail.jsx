@@ -16,7 +16,7 @@ const AdminStudentDetail = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [activeTab, setActiveTab] = useState('transactions'); // 'transactions' | 'points' | 'coupons'
+    const [activeTab, setActiveTab] = useState('points'); // 'points' | 'coupons'
 
     // Point adjustment modal state
     const [pointModalOpen, setPointModalOpen] = useState(false);
@@ -146,7 +146,16 @@ const AdminStudentDetail = () => {
         chart: { type: 'donut', background: 'transparent' },
         labels: chartLabels,
         colors: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4'],
-        legend: { position: 'bottom', labels: { colors: '#64748b' } },
+        legend: { 
+            position: 'bottom', 
+            labels: { colors: '#64748b' },
+            onItemClick: {
+                toggleDataSeries: false
+            },
+            onItemHover: {
+                highlightDataSeries: true
+            }
+        },
         tooltip: {
             y: { formatter: (val) => `${Number(val).toLocaleString()} P` }
         },
@@ -295,30 +304,40 @@ const AdminStudentDetail = () => {
                         </div>
                     ) : (
                         <div className="holdings-table-wrapper">
-                            <table className="detail-table">
+                            <table className="detail-table holdings-table">
                                 <thead>
                                     <tr>
                                         <th>종목명</th>
                                         <th>보유 수량</th>
+                                        <th>총 구매 금액</th>
                                         <th>현재가</th>
                                         <th>총 평가액</th>
-                                        <th>손익</th>
+                                        <th>평가 손익</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {myStocks.map((stk, idx) => (
-                                        <tr key={idx}>
-                                            <td style={{ fontWeight: '700' }}>{stk.stockName}</td>
-                                            <td>{stk.amount} 주</td>
-                                            <td>{(stk.currentPrice || 0).toLocaleString()} P</td>
-                                            <td style={{ fontWeight: '700' }}>
-                                                {((stk.amount || 0) * (stk.currentPrice || 0)).toLocaleString()} P
-                                            </td>
-                                            <td style={{ fontWeight: '700', color: (stk.profit || 0) >= 0 ? '#ef4444' : '#3b82f6' }}>
-                                                {(stk.profit || 0) > 0 ? '+' : ''}{(stk.profit || 0).toLocaleString()} P
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {myStocks.map((stk, idx) => {
+                                        const amount = stk.amount || 0;
+                                        const currentPrice = stk.currentPrice || 0;
+                                        const avgPrice = stk.averagePrice || stk.avgPrice || (amount > 0 && stk.purchasePrice ? Math.round(stk.purchasePrice / amount) : 0);
+                                        const purchasePrice = avgPrice > 0 ? (amount * avgPrice) : (stk.purchasePrice || 0);
+                                        const totalValue = amount * currentPrice;
+                                        const profit = stk.profit ?? (totalValue - purchasePrice);
+                                        const isProfit = profit >= 0;
+
+                                        return (
+                                            <tr key={idx}>
+                                                <td style={{ fontWeight: '700' }}>{stk.stockName}</td>
+                                                <td>{amount.toLocaleString()} 주</td>
+                                                <td style={{ fontWeight: '600' }}>{purchasePrice.toLocaleString()} P</td>
+                                                <td>{currentPrice.toLocaleString()} P</td>
+                                                <td style={{ fontWeight: '700' }}>{totalValue.toLocaleString()} P</td>
+                                                <td style={{ fontWeight: '700', color: isProfit ? '#ef4444' : '#3b82f6' }}>
+                                                    {profit > 0 ? '+' : ''}{profit.toLocaleString()} P
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -353,10 +372,10 @@ const AdminStudentDetail = () => {
                             <table className="detail-table">
                                 <thead>
                                     <tr>
-                                        <th>일시</th>
-                                        <th>구분</th>
-                                        <th>상세 내역 (사유 / 종목명)</th>
-                                        <th style={{ textAlign: 'right' }}>변동 금액</th>
+                                        <th style={{ width: '22%' }}>일시</th>
+                                        <th style={{ width: '12%' }}>구분</th>
+                                        <th style={{ width: '46%' }}>상세 내역 (사유 / 종목명)</th>
+                                        <th style={{ width: '20%', textAlign: 'right' }}>변동 금액</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -408,9 +427,9 @@ const AdminStudentDetail = () => {
                             <table className="detail-table">
                                 <thead>
                                     <tr>
-                                        <th>쿠폰 상품명</th>
-                                        <th>구매 일시</th>
-                                        <th>사용 여부</th>
+                                        <th style={{ width: '45%' }}>쿠폰 상품명</th>
+                                        <th style={{ width: '35%' }}>구매 일시</th>
+                                        <th style={{ width: '20%' }}>사용 여부</th>
                                     </tr>
                                 </thead>
                                 <tbody>

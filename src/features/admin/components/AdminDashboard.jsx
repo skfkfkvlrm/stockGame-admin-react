@@ -309,32 +309,86 @@ const AdminDashboard = ({ initialTab }) => {
         }
     };
 
+    const SECTOR_OPTIONS = [
+        '간식/매점',
+        '게임/콘텐츠',
+        '엔터/미디어',
+        '문구/학용품',
+        '스포츠/취미',
+        '미래기술/IT',
+        '기타 (직접 입력)'
+    ];
+
     const handleOpenStockModal = (stock = null) => {
         if (stock) {
             setStockModal({ mode: 'edit', stock });
+            const rawContent = stock.content || '';
+            const match = rawContent.match(/^\[(.*?)\]\s*(.*)$/);
+            let initialSector = '간식/매점';
+            let initialCustom = '';
+            let initialDesc = rawContent;
+
+            if (match) {
+                const foundSector = match[1];
+                initialDesc = match[2];
+                if (SECTOR_OPTIONS.includes(foundSector)) {
+                    initialSector = foundSector;
+                } else {
+                    initialSector = '기타 (직접 입력)';
+                    initialCustom = foundSector;
+                }
+            } else {
+                const found = SECTOR_OPTIONS.find(s => s !== '기타 (직접 입력)' && rawContent.startsWith(s));
+                if (found) {
+                    initialSector = found;
+                }
+            }
+
             setStockForm({
                 name: stock.stockName || stock.name || '',
-                content: stock.content || '',
+                sector: initialSector,
+                customSector: initialCustom,
+                description: initialDesc,
                 publicationPrice: stock.pubPrice || stock.publicationPrice || '',
                 publicationBalance: (stock.pubAmount !== undefined && stock.pubAmount !== null) ? stock.pubAmount : (stock.publicationBalance !== undefined && stock.publicationBalance !== null ? stock.publicationBalance : ''),
                 status: stock.status || 'LISTED'
             });
         } else {
             setStockModal({ mode: 'create' });
-            setStockForm({ name: '', content: '', publicationPrice: '', publicationBalance: '', status: 'LISTED' });
+            setStockForm({
+                name: '',
+                sector: '간식/매점',
+                customSector: '',
+                description: '',
+                publicationPrice: '',
+                publicationBalance: '',
+                status: 'LISTED'
+            });
         }
     };
 
     const handleSaveStock = async (e) => {
         e.preventDefault();
+        const selectedSector = stockForm.sector === '기타 (직접 입력)' ? (stockForm.customSector || '').trim() : stockForm.sector;
         if (!stockForm.name || (stockModal.mode === 'create' && stockForm.publicationPrice === '') || stockForm.publicationBalance === '') {
-            alert('모든 필드를 입력해 주세요.');
+            alert('모든 필수 항목을 입력해 주세요.');
             return;
         }
+
+        if (stockForm.sector === '기타 (직접 입력)' && !stockForm.customSector?.trim()) {
+            alert('직접 입력할 분야/업종명을 입력해 주세요.');
+            return;
+        }
+
+        const finalContent = selectedSector 
+            ? `[${selectedSector}] ${(stockForm.description || '').trim()}`
+            : (stockForm.description || '').trim();
 
         const actionText = stockModal.mode === 'create' ? '신규 상장' : '정보 수정';
         const confirmMsg = `[주식 종목 ${actionText}]\n\n` +
             `• 종목명: ${stockForm.name}\n` +
+            `• 분야(업종): ${selectedSector || '(미지정)'}\n` +
+            `• 종목 설명: ${stockForm.description || '(없음)'}\n` +
             `• 발행가: ${Number(stockForm.publicationPrice || 0).toLocaleString()} P\n` +
             `• 발행 잔량: ${Number(stockForm.publicationBalance || 0).toLocaleString()} 주\n` +
             `• 상장 상태: ${stockForm.status === 'LISTED' ? '상장/거래가능' : '거래정지'}\n\n` +
@@ -348,7 +402,7 @@ const AdminDashboard = ({ initialTab }) => {
             if (stockModal.mode === 'create') {
                 await api.post('/admin/stocks', {
                     name: stockForm.name,
-                    content: stockForm.content,
+                    content: finalContent,
                     publicationPrice: Number(stockForm.publicationPrice),
                     publicationBalance: Number(stockForm.publicationBalance),
                     status: stockForm.status
@@ -358,7 +412,7 @@ const AdminDashboard = ({ initialTab }) => {
                 const targetId = stockModal.stock.stockId || stockModal.stock.id;
                 await api.put("/admin/stocks/" + targetId, {
                     name: stockForm.name,
-                    content: stockForm.content,
+                    content: finalContent,
                     publicationPrice: Number(stockForm.publicationPrice),
                     publicationBalance: Number(stockForm.publicationBalance),
                     status: stockForm.status
@@ -777,48 +831,48 @@ const AdminDashboard = ({ initialTab }) => {
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
                         ) : (
-                            <table className="admin-table">
+                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>학번</th>
-                                        <th>이름</th>
-                                        <th>학년 / 반 / 번호</th>
-                                        <th>총 보유 포인트</th>
-                                        <th>보유 쿠폰 수</th>
-                                        <th>관리 액션</th>
+                                        <th style={{ width: '7%' }}>ID</th>
+                                        <th style={{ width: '13%' }}>학번</th>
+                                        <th style={{ width: '13%' }}>이름</th>
+                                        <th style={{ width: '18%' }}>학년 / 반 / 번호</th>
+                                        <th style={{ width: '16%' }}>총 보유 포인트</th>
+                                        <th style={{ width: '10%' }}>보유 쿠폰</th>
+                                        <th style={{ width: '23%' }}>관리 액션</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((s) => (
+                                        filteredStudents.map((s, idx) => (
                                              <tr 
-                                                key={s.id || s.studentId}
+                                                key={s.id || s.studentId || idx}
                                                 style={{ cursor: 'pointer' }}
                                                 onClick={() => navigate(`/students/${s.studentId}`)}
                                             >
-                                                <td>#{s.id}</td>
+                                                <td>#{s.id ?? s.rank ?? (idx + 1)}</td>
                                                 <td className="font-mono">{s.studentId}</td>
                                                 <td className="font-bold" style={{ color: '#2563eb' }}>{s.name}</td>
                                                 <td>{s.grade}학년 {s.className && s.className.includes('반') ? s.className : `${s.className || ''}반`} {s.classNumber}번</td>
                                                 <td className="font-bold text-accent">{s.totalPoint ? s.totalPoint.toLocaleString() : 0} P</td>
                                                 <td>{s.totalCoupon || 0} 개</td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '5px 8px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
                                                             onClick={() => handleOpenPointModal(s)}
                                                         >
-                                                            포인트 관리
+                                                            포인트
                                                         </button>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '5px 8px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
                                                             onClick={() => navigate(`/students/${s.studentId}`)}
                                                         >
-                                                            포트폴리오 상세
+                                                            포트폴리오
                                                         </button>
                                                         <button 
-                                                            style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                                                            style={{ padding: '5px 8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
                                                             onClick={() => handleDeleteStudent(s)}
                                                         >
                                                             삭제
@@ -846,28 +900,28 @@ const AdminDashboard = ({ initialTab }) => {
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
                         ) : (
-                            <table className="admin-table">
+                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <thead>
                                     <tr>
-                                        <th>종목 ID</th>
-                                        <th>종목명</th>
-                                        <th>업종 / 설명</th>
-                                        <th>최초 발행 가격</th>
-                                        <th>현재 발행 잔량</th>
-                                        <th>상태</th>
-                                        <th>관리 액션</th>
+                                        <th style={{ width: '10%' }}>종목 ID</th>
+                                        <th style={{ width: '18%' }}>종목명</th>
+                                        <th style={{ width: '22%' }}>업종 / 설명</th>
+                                        <th style={{ width: '14%' }}>최초 발행 가격</th>
+                                        <th style={{ width: '14%' }}>현재 발행 잔량</th>
+                                        <th style={{ width: '12%' }}>상태</th>
+                                        <th style={{ width: '10%' }}>관리 액션</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {stocks.length > 0 ? (
                                         stocks.map((st) => (
                                             <tr 
-                                                key={st.stockId}
+                                                key={st.stockId || st.id}
                                                 style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
-                                                onClick={() => navigate(`/stocks/${st.stockId}`)}
+                                                onClick={() => navigate(`/stocks/${st.stockId || st.id}`)}
                                                 title="클릭하여 실시간 체결 내역 및 상세 모니터링 페이지로 이동"
                                             >
-                                                <td>#{st.stockId}</td>
+                                                <td>#{st.stockId ?? st.id}</td>
                                                  <td className="font-bold" style={{ color: '#0284c7' }}>🔍 {st.stockName || st.name}</td>
                                                 <td>{st.content}</td>
                                                  <td className="font-bold">{(st.pubPrice ?? st.publicationPrice ?? 0).toLocaleString()} 원</td>
@@ -938,21 +992,35 @@ const AdminDashboard = ({ initialTab }) => {
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
                         ) : (
-                            <table className="admin-table">
+                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <thead>
                                     <tr>
-                                        <th>쿠폰 ID</th>
-                                        <th>쿠폰 상품명</th>
-                                        <th>판매 가격</th>
-                                        <th>발행 상태</th>
-                                        <th>관리 액션</th>
+                                        <th style={{ width: '16%' }}>일련번호</th>
+                                        <th style={{ width: '32%' }}>쿠폰 상품명</th>
+                                        <th style={{ width: '18%' }}>판매 가격</th>
+                                        <th style={{ width: '18%' }}>발행 상태</th>
+                                        <th style={{ width: '16%' }}>관리 액션</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {coupons.length > 0 ? (
                                         coupons.map((c) => (
                                             <tr key={c.couponId || c.id}>
-                                                <td>#{c.couponId || c.id}</td>
+                                                <td>
+                                                    <span style={{
+                                                        fontFamily: 'Consolas, monospace',
+                                                        fontWeight: '700',
+                                                        fontSize: '0.85rem',
+                                                        color: '#4f46e5',
+                                                        background: '#eef2ff',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #c7d2fe',
+                                                        display: 'inline-block'
+                                                    }}>
+                                                        {c.couponCode || `CPN-2026-${String(c.couponId || c.id).padStart(4, '0')}`}
+                                                    </span>
+                                                </td>
                                                 <td className="font-bold">{c.name}</td>
                                                 <td className="font-bold text-accent">{c.price ? c.price.toLocaleString() : 0} P</td>
                                                 <td>
@@ -1163,7 +1231,9 @@ const AdminDashboard = ({ initialTab }) => {
 
                         <form onSubmit={handleSaveStock}>
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '4px' }}>종목명</label>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '4px' }}>
+                                    종목명 <span style={{ color: '#ef4444' }}>*</span>
+                                </label>
                                 <input 
                                     type="text" 
                                     placeholder="예: 네이버, 카카오" 
@@ -1175,12 +1245,39 @@ const AdminDashboard = ({ initialTab }) => {
                             </div>
 
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '4px' }}>업종 및 종목 설명</label>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '4px' }}>
+                                    분야 (업종 / 카테고리) <span style={{ color: '#ef4444' }}>*</span>
+                                </label>
+                                <select 
+                                    value={stockForm.sector}
+                                    onChange={(e) => setStockForm({ ...stockForm, sector: e.target.value })}
+                                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.95rem', outline: 'none', background: '#ffffff', marginBottom: stockForm.sector === '기타 (직접 입력)' ? '8px' : '0' }}
+                                >
+                                    {SECTOR_OPTIONS.map((sec) => (
+                                        <option key={sec} value={sec}>{sec}</option>
+                                    ))}
+                                </select>
+                                {stockForm.sector === '기타 (직접 입력)' && (
+                                    <input 
+                                        type="text" 
+                                        placeholder="직접 분야명을 입력하세요 (예: 바이오/헬스케어)" 
+                                        value={stockForm.customSector}
+                                        onChange={(e) => setStockForm({ ...stockForm, customSector: e.target.value })}
+                                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.95rem', outline: 'none' }}
+                                        required
+                                    />
+                                )}
+                            </div>
+
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '4px' }}>
+                                    종목 상세 설명
+                                </label>
                                 <input 
                                     type="text" 
-                                    placeholder="예: 대한민국 대표 포털 IT 기업" 
-                                    value={stockForm.content}
-                                    onChange={(e) => setStockForm({ ...stockForm, content: e.target.value })}
+                                    placeholder="예: 화가나고 피곤할 땐 새콤달콤" 
+                                    value={stockForm.description}
+                                    onChange={(e) => setStockForm({ ...stockForm, description: e.target.value })}
                                     style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.95rem', outline: 'none' }}
                                 />
                             </div>

@@ -188,7 +188,9 @@
 
 .table-container {
     border-radius: 14px;
-    overflow-x: auto;
+    max-height: 540px;          /* ← 탭 내부 테이블 세로 최대 높이 제한 */
+    overflow-y: auto;           /* ← 세로 스크롤 활성화 */
+    overflow-x: hidden;         /* ← 가로 스크롤 완전 방지 */
     background: #ffffff;
     border: 1px solid var(--bg-panel-border, rgba(0,0,0,0.08));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
@@ -197,9 +199,17 @@
 
 .admin-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     text-align: left;
-    min-width: 780px;
+    table-layout: fixed;
+    min-width: 0 !important;
+}
+
+.admin-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .admin-table th {
@@ -207,18 +217,25 @@
     color: #ffffff;
     font-weight: 600;
     font-size: 0.85rem;
-    padding: 0.9rem 1.1rem;
+    padding: 0.8rem 0.6rem;
     border-bottom: 1px solid #334155;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .admin-table td {
-    padding: 0.9rem 1.1rem;
+    padding: 0.8rem 0.6rem;
     color: #1e293b;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 500;
     border-bottom: 1px solid #e2e8f0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .admin-table tbody tr:hover {

@@ -79,6 +79,19 @@
     color: #0f172a;
     line-height: 1.2;
     white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.admin-current-price.up {
+    color: #ef4444;
+}
+
+.admin-current-price.down {
+    color: #3b82f6;
+}
+
+.admin-current-price.flat {
+    color: #0f172a;
 }
 
 .admin-price-change {
@@ -196,11 +209,25 @@
     font-weight: 700;
 }
 
+.admin-tx-table-wrapper {
+    max-height: 440px;          /* ← 체결 기록 목록이 너무 길어지지 않도록 높이 제한 */
+    overflow-y: auto;           /* ← 세로 스크롤 활성화 */
+    overflow-x: hidden;         /* ← 가로 스크롤 완전 방지 */
+    scrollbar-gutter: stable;
+}
+
 .admin-tx-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 650px;
+    table-layout: fixed;
+    min-width: 0 !important;
+}
+
+.admin-tx-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .admin-tx-table th {
@@ -209,17 +236,24 @@
     font-size: 0.85rem;
     font-weight: 700;
     text-align: left;
-    padding: 12px 14px;
+    padding: 10px 8px;
     border-bottom: 1px solid #e2e8f0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .admin-tx-table td {
-    padding: 12px 14px;
-    font-size: 0.9rem;
+    padding: 10px 8px;
+    font-size: 0.86rem;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .admin-tx-table tr:hover td {
@@ -229,11 +263,15 @@
 .admin-student-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+    gap: 4px;
+    padding: 3px 6px;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .admin-student-badge.buyer {

@@ -193,7 +193,7 @@ const AdminStockDetail = () => {
                             <p className="admin-stock-desc">{stockInfo.content || '등록된 업종 및 기업 소개 정보가 없습니다.'}</p>
                         </div>
                         <div className="admin-stock-price-display">
-                            <div className="admin-current-price">{currentPrice.toLocaleString()} P</div>
+                            <div className={`admin-current-price ${isUp ? 'up' : isDown ? 'down' : 'flat'}`}>{currentPrice.toLocaleString()} P</div>
                             <div className={`admin-price-change ${isUp ? 'up' : isDown ? 'down' : 'flat'}`}>
                                 {isUp ? '▲' : isDown ? '▼' : '-'} {Math.abs(priceDiff).toLocaleString()} P ({isUp ? '+' : ''}{changeRate}%)
                             </div>
@@ -269,17 +269,17 @@ const AdminStockDetail = () => {
                     </h3>
                 </div>
 
-                <div style={{ overflowX: 'auto' }}>
+                <div className="admin-tx-table-wrapper">
                     <table className="admin-tx-table">
                         <thead>
                             <tr>
-                                <th>체결 ID</th>
-                                <th>체결 일시</th>
-                                <th>매수자 (Buyer)</th>
-                                <th>매도자 (Seller)</th>
-                                <th style={{ textAlign: 'right' }}>체결 단가</th>
-                                <th style={{ textAlign: 'right' }}>체결 수량</th>
-                                <th style={{ textAlign: 'right' }}>총 체결 금액</th>
+                                <th style={{ width: '10%' }}>체결 ID</th>
+                                <th style={{ width: '18%' }}>체결 일시</th>
+                                <th style={{ width: '20%' }}>매수자 (Buyer)</th>
+                                <th style={{ width: '20%' }}>매도자 (Seller)</th>
+                                <th style={{ width: '11%', textAlign: 'right' }}>체결 단가</th>
+                                <th style={{ width: '9%', textAlign: 'right' }}>체결 수량</th>
+                                <th style={{ width: '12%', textAlign: 'right' }}>총 체결 금액</th>
                             </tr>
                         </thead>
                         <tbody>
