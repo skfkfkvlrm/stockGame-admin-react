@@ -184,7 +184,12 @@ const AdminDashboard = ({ initialTab }) => {
         }
 
         try {
-            await api.delete(`/admin/stocks/${targetId}`);
+            await api.delete(`/admin/stocks/${targetId}`, {
+                params: {
+                    compensationPrice: Number(delistCompensation) || 0,
+                    reason: delistReason || ''
+                }
+            });
             alert(`'${delistModalStock.stockName || delistModalStock.name}' 종목이 상장폐지 처리되었습니다.`);
             setDelistModalStock(null);
             fetchData();
