@@ -275,11 +275,11 @@ const AdminStockDetail = () => {
                             <tr>
                                 <th style={{ width: '10%' }}>체결 ID</th>
                                 <th style={{ width: '18%' }}>체결 일시</th>
-                                <th style={{ width: '20%' }}>매수자 (Buyer)</th>
-                                <th style={{ width: '20%' }}>매도자 (Seller)</th>
-                                <th style={{ width: '11%', textAlign: 'right' }}>체결 단가</th>
+                                <th style={{ width: '10%' }}>구분</th>
+                                <th style={{ width: '12%', textAlign: 'right' }}>체결 단가</th>
                                 <th style={{ width: '9%', textAlign: 'right' }}>체결 수량</th>
-                                <th style={{ width: '12%', textAlign: 'right' }}>총 체결 금액</th>
+                                <th style={{ width: '13%', textAlign: 'right' }}>총 체결 금액</th>
+                                <th style={{ width: '28%' }}>거래 당사자(Taker ➔ Maker)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -292,29 +292,75 @@ const AdminStockDetail = () => {
                                             {formatDate(tx.created_date || tx.createdDate)}
                                         </td>
                                         <td>
-                                            <span className="admin-student-badge buyer">
-                                                🔴 {tx.buyer_name || tx.buyerName || '학생'} ({tx.buyer_student_id || tx.buyerStudentId})
+                                            <span className={`trade-type-badge ${tx.trade_type === '매수' ? 'buy' : 'sell'}`}>
+                                                {tx.trade_type || '체결'}
                                             </span>
                                         </td>
-                                        <td>
-                                            {tx.seller_student_id === 'SYSTEM_LP' ? (
-                                                <span className="admin-student-badge lp">
-                                                    🏦 초기발행(LP)
-                                                </span>
-                                            ) : (
-                                                <span className="admin-student-badge seller">
-                                                    🔵 {tx.seller_name || tx.sellerName || '학생'} ({tx.seller_student_id || tx.sellerStudentId})
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: tx.trade_type === '매수' ? '#dc2626' : (tx.trade_type === '매도' ? '#2563eb' : '#0f172a') }}>
                                             {(tx.price || 0).toLocaleString()} P
                                         </td>
-                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#6366f1' }}>
+                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#64748b' }}>
                                             {(tx.amount || 0).toLocaleString()} 주
                                         </td>
                                         <td style={{ textAlign: 'right', fontWeight: '800', color: '#0f172a' }}>
                                             {((tx.total_price ?? (tx.amount * tx.price)) || 0).toLocaleString()} P
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                {tx.trade_type === '매도' ? (
+                                                    <>
+                                                        <span className="admin-student-badge minimal seller" title={tx.seller_student_id || tx.sellerStudentId}>{tx.seller_name || tx.sellerName || '학생'}</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                        <span className={`admin-student-badge minimal ${tx.seller_student_id === 'SYSTEM_LP' ? 'lp' : 'seller'}`} title={tx.seller_student_id || tx.sellerStudentId}>
+                                                            {tx.seller_student_id === 'SYSTEM_LP' ? '초기발행(LP)' : (tx.seller_name || tx.sellerName || '학생')}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                {tx.trade_type === '매도' ? (
+                                                    <>
+                                                        <span className="admin-student-badge minimal seller" title={tx.seller_student_id || tx.sellerStudentId}>{tx.seller_name || tx.sellerName || '학생'}</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                        <span className={`admin-student-badge minimal ${tx.seller_student_id === 'SYSTEM_LP' ? 'lp' : 'seller'}`} title={tx.seller_student_id || tx.sellerStudentId}>
+                                                            {tx.seller_student_id === 'SYSTEM_LP' ? '초기발행(LP)' : (tx.seller_name || tx.sellerName || '학생')}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                {tx.trade_type === '매도' ? (
+                                                    <>
+                                                        <span className="admin-student-badge minimal seller" title={tx.seller_student_id || tx.sellerStudentId}>{tx.seller_name || tx.sellerName || '학생'}</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                        <span className={`admin-student-badge minimal ${tx.seller_student_id === 'SYSTEM_LP' ? 'lp' : 'seller'}`} title={tx.seller_student_id || tx.sellerStudentId}>
+                                                            {tx.seller_student_id === 'SYSTEM_LP' ? '초기발행(LP)' : (tx.seller_name || tx.sellerName || '학생')}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

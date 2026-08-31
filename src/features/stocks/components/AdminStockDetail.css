@@ -295,3 +295,38 @@
         grid-template-columns: 1fr;
     }
 }
+.trade-type-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+.trade-type-badge.buy {
+    background-color: #fef2f2;
+    color: #ef4444;
+}
+.trade-type-badge.sell {
+    background-color: #eff6ff;
+    color: #3b82f6;
+}
+.admin-student-badge.minimal {
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+.admin-student-badge.minimal.buyer {
+    background: transparent;
+    color: #ef4444;
+}
+.admin-student-badge.minimal.seller {
+    background: transparent;
+    color: #3b82f6;
+}
+.admin-student-badge.minimal.lp {
+    background: transparent;
+    color: #64748b;
+}
