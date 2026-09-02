@@ -134,7 +134,7 @@
     margin-bottom: 24px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1300px) {
     .student-portfolio-section {
         grid-template-columns: 1fr;
     }
@@ -197,24 +197,24 @@
 
 .activity-tab-body {
     padding: 0 20px 20px 20px;
-    max-height: 440px;          /* ← 너무 길어지지 않도록 세로 최대 높이 제한 */
-    overflow-y: auto;           /* ← 세로 스크롤 활성화 */
-    overflow-x: hidden;         /* ← 탭 내 테이블 가로 스크롤 완전 방지 */
+    max-height: 440px;          
+    overflow-y: auto;           
+    overflow-x: auto;         
     scrollbar-gutter: stable;
 }
 
 /* Holdings Table Scroll Wrapper */
 .holdings-table-wrapper {
-    max-height: 280px;          /* ← 좌측 자산 포트폴리오 차트와 높이 일치 */
-    overflow-y: auto;           /* ← 세로 스크롤 활성화 */
-    overflow-x: hidden;         /* ← 가로 스크롤 방지 */
+    max-height: 280px;          
+    overflow-y: auto;           
+    overflow-x: auto;         
     scrollbar-gutter: stable;
 }
 
 .holdings-table {
     width: 100%;
     table-layout: fixed;
-    min-width: 0 !important;
+    min-width: 800px;
     text-align: right;
 }
 

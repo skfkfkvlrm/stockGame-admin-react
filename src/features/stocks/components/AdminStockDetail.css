@@ -210,9 +210,9 @@
 }
 
 .admin-tx-table-wrapper {
-    max-height: 440px;          /* ← 체결 기록 목록이 너무 길어지지 않도록 높이 제한 */
-    overflow-y: auto;           /* ← 세로 스크롤 활성화 */
-    overflow-x: hidden;         /* ← 가로 스크롤 완전 방지 */
+    max-height: 440px;          
+    overflow-y: auto;           
+    overflow-x: auto;         
     scrollbar-gutter: stable;
 }
 
@@ -221,7 +221,7 @@
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
-    min-width: 0 !important;
+    min-width: 900px;
 }
 
 .admin-tx-table thead {
@@ -290,7 +290,7 @@
     border: 1px solid #cbd5e1;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1300px) {
     .admin-stock-header-grid {
         grid-template-columns: 1fr;
     }

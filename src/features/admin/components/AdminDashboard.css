@@ -188,9 +188,9 @@
 
 .table-container {
     border-radius: 14px;
-    max-height: 540px;          /* ← 탭 내부 테이블 세로 최대 높이 제한 */
-    overflow-y: auto;           /* ← 세로 스크롤 활성화 */
-    overflow-x: hidden;         /* ← 가로 스크롤 완전 방지 */
+    max-height: 540px;          
+    overflow-y: auto;           
+    overflow-x: auto;           /* 가로 스크롤 허용 */
     background: #ffffff;
     border: 1px solid var(--bg-panel-border, rgba(0,0,0,0.08));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
@@ -203,7 +203,7 @@
     border-spacing: 0;
     text-align: left;
     table-layout: fixed;
-    min-width: 0 !important;
+    min-width: 900px; /* 중첩 방지 최소 너비 */
 }
 
 .admin-table thead {
