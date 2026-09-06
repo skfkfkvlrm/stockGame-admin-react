@@ -10,8 +10,8 @@ const RequireAdmin = ({ children }) => {
         return <div className="app-container"><div className="loading-spinner"></div></div>;
     }
 
-    // 학생 계정이거나(role이 ADMIN 또는 MANAGER가 아님) 미인증 상태인 경우 로그인 페이지로 리다이렉트
-    const isAdmin = user && (user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'ROLE_ADMIN' || user.role === 'ROLE_MANAGER');
+    // 학생 계정이거나(role이 ADMIN 또는 MANAGER/TEACHER가 아님) 미인증 상태인 경우 로그인 페이지로 리다이렉트
+    const isAdmin = user && (user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'ROLE_ADMIN' || user.role === 'ROLE_MANAGER' || user.role === 'ROLE_TEACHER');
 
     if (!isAuthenticated || !isAdmin) {
         return <Navigate to="/login" replace />;

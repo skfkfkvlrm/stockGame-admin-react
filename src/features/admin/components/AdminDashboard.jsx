@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Users, TrendingUp, Store, Search, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, Plus, Clock, Settings, Play, Pause } from 'lucide-react';
-import api from '../../../api/axios';
 import useMarketStore from '../store/useMarketStore';
+import adminStockService from '../../../services/adminStockService';
+import adminStudentService from '../../../services/adminStudentService';
+import adminCouponService from '../../../services/adminCouponService';
+import adminMarketService from '../../../services/adminMarketService';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ initialTab }) => {
@@ -60,6 +63,7 @@ const AdminDashboard = ({ initialTab }) => {
     }, [isEditingMarket]);
 
     useEffect(() => {
+        useMarketStore.getState().initRealtime();
         fetchMarketStatus().then((data) => {
             if (data) {
                 setEditMode(data.mode || 'AUTO');
@@ -106,11 +110,11 @@ const AdminDashboard = ({ initialTab }) => {
         }
         setIsExecutingAuction(true);
         try {
-            const res = await api.post('/stock/admin/market/execute-closing-auction');
-            alert(res.data?.message || '동시호가 단일가 일괄 체결이 완료되었습니다!');
+            const res = await adminMarketService.executeClosingAuction();
+            alert(res?.message || '동시호가 단일가 일괄 체결이 완료되었습니다!');
             fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || '동시호가 일괄 체결 실행 실패');
+            alert(err.message || '동시호가 일괄 체결 실행 실패');
         } finally {
             setIsExecutingAuction(false);
         }
@@ -120,15 +124,15 @@ const AdminDashboard = ({ initialTab }) => {
         setLoading(true);
         setError(null);
         try {
-            const [studentsRes, stocksRes, couponsRes] = await Promise.all([
-                api.get('/admin/students'),
-                api.get('/stock'),
-                api.get('/admin/coupons')
+            const [studentsData, stocksData, couponsData] = await Promise.all([
+                adminStudentService.getStudents(),
+                adminStockService.getStocks(),
+                adminCouponService.getCoupons()
             ]);
 
-            setStudents(studentsRes.data?.data || []);
-            setStocks(stocksRes.data?.data || []);
-            setCoupons(couponsRes.data?.data || []);
+            setStudents(studentsData || []);
+            setStocks(stocksData || []);
+            setCoupons(couponsData || []);
         } catch (err) {
             console.error('Admin API fetch failed:', err);
             setError('관리자 데이터 조회 중 오류가 발생했습니다.');
@@ -184,17 +188,16 @@ const AdminDashboard = ({ initialTab }) => {
         }
 
         try {
-            await api.delete(`/admin/stocks/${targetId}`, {
-                params: {
-                    compensationPrice: Number(delistCompensation) || 0,
-                    reason: delistReason || ''
-                }
-            });
+            await adminStockService.delistStock(
+                targetId,
+                Number(delistCompensation) || 0,
+                delistReason || ''
+            );
             alert(`'${delistModalStock.stockName || delistModalStock.name}' 종목이 상장폐지 처리되었습니다.`);
             setDelistModalStock(null);
             fetchData();
         } catch (err) {
-            alert('상장폐지 처리 중 오류가 발생했습니다.');
+            alert(err.message || '상장폐지 처리 중 오류가 발생했습니다.');
         }
     };
 
@@ -222,24 +225,12 @@ const AdminDashboard = ({ initialTab }) => {
         }
 
         try {
-            const res = await api.post('/members/join', {
-                studentId: studentForm.studentId,
-                password: studentForm.password,
-                name: studentForm.name,
-                grade: Number(studentForm.grade),
-                className: String(studentForm.className),
-                classNumber: Number(studentForm.classNumber)
-            });
-
-            if (res.data && res.data.success) {
-                alert(`신규 학생 '${studentForm.name}' 계정이 성공적으로 추가되었습니다! (기본 포인트: 100,000 P)`);
-                setStudentModal(null);
-                fetchData();
-            } else {
-                alert(res.data?.message || '학생 계정 생성 실패');
-            }
+            await adminStudentService.createStudent(studentForm);
+            alert(`신규 학생 '${studentForm.name}' 계정이 성공적으로 추가되었습니다! (기본 포인트: 100,000 P)`);
+            setStudentModal(null);
+            fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || '학생 추가 중 오류가 발생했습니다.');
+            alert(err.message || '학생 추가 중 오류가 발생했습니다.');
         }
     };
 
@@ -251,15 +242,11 @@ const AdminDashboard = ({ initialTab }) => {
         }
 
         try {
-            const res = await api.delete(`/admin/students/${targetId}`);
-            if (res.data && res.data.success) {
-                alert(`'${studentName}' 학생 계정이 삭제되었습니다.`);
-                fetchData();
-            } else {
-                alert(res.data?.message || '학생 계정 삭제 실패');
-            }
+            await adminStudentService.deleteStudent(student.userId || student.id, targetId);
+            alert(`'${studentName}' 학생 계정이 삭제되었습니다.`);
+            fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || '학생 계정 삭제 중 오류가 발생했습니다.');
+            alert(err.message || '학생 계정 삭제 중 오류가 발생했습니다.');
         }
     };
 
@@ -305,7 +292,7 @@ const AdminDashboard = ({ initialTab }) => {
 
         try {
             if (couponModal.mode === 'create') {
-                await api.post('/admin/coupons', {
+                await adminCouponService.createCoupon({
                     name: couponForm.name,
                     price: Number(couponForm.price),
                     status: couponForm.status
@@ -313,7 +300,7 @@ const AdminDashboard = ({ initialTab }) => {
                 alert('신규 쿠폰 상품이 성공적으로 등록되었습니다!');
             } else {
                 const targetId = couponModal.coupon.couponId || couponModal.coupon.id;
-                await api.put("/admin/coupons/" + targetId, {
+                await adminCouponService.updateCoupon(targetId, {
                     name: couponForm.name,
                     price: Number(couponForm.price),
                     status: couponForm.status
@@ -323,7 +310,7 @@ const AdminDashboard = ({ initialTab }) => {
             setCouponModal(null);
             fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || '쿠폰 정보 저장 중 오류가 발생했습니다.');
+            alert(err.message || '쿠폰 정보 저장 중 오류가 발생했습니다.');
         }
     };
 
@@ -334,11 +321,11 @@ const AdminDashboard = ({ initialTab }) => {
         }
 
         try {
-            await api.delete("/admin/coupons/" + targetId);
+            await adminCouponService.deleteCoupon(targetId);
             alert(`'${coupon.name}' 쿠폰 상품이 삭제되었습니다.`);
             fetchData();
         } catch (err) {
-            alert('쿠폰 삭제 중 오류가 발생했습니다.');
+            alert(err.message || '쿠폰 삭제 중 오류가 발생했습니다.');
         }
     };
 
@@ -433,7 +420,7 @@ const AdminDashboard = ({ initialTab }) => {
 
         try {
             if (stockModal.mode === 'create') {
-                await api.post('/admin/stocks', {
+                await adminStockService.createStock({
                     name: stockForm.name,
                     content: finalContent,
                     publicationPrice: Number(stockForm.publicationPrice),
@@ -443,7 +430,7 @@ const AdminDashboard = ({ initialTab }) => {
                 alert('신규 주식 종목이 성공적으로 상장되었습니다!');
             } else {
                 const targetId = stockModal.stock.stockId || stockModal.stock.id;
-                await api.put("/admin/stocks/" + targetId, {
+                await adminStockService.updateStock(targetId, {
                     name: stockForm.name,
                     content: finalContent,
                     publicationPrice: Number(stockForm.publicationPrice),
@@ -455,7 +442,7 @@ const AdminDashboard = ({ initialTab }) => {
             setStockModal(null);
             fetchData();
         } catch (err) {
-            alert('주식 정보 저장 중 오류가 발생했습니다.');
+            alert(err.message || '주식 정보 저장 중 오류가 발생했습니다.');
         }
     };
 
@@ -495,15 +482,17 @@ const AdminDashboard = ({ initialTab }) => {
         setIsSubmitting(true);
 
         try {
-            await api.post("/admin/students/" + pointModalStudent.studentId + "/point", {
-                amount: finalAmount,
-                reason: pointReason
-            });
+            await adminStudentService.adjustPoint(
+                pointModalStudent.userId || pointModalStudent.id,
+                finalAmount,
+                pointReason,
+                pointModalStudent.studentId
+            );
             alert(`${pointModalStudent.name} 학생에게 포인트 ${actionText}이 완료되었습니다.`);
             setPointModalStudent(null);
             fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || '포인트 반영에 실패했습니다.');
+            alert(err.message || '포인트 반영에 실패했습니다.');
         } finally {
             setIsSubmitting(false);
         }
@@ -513,8 +502,8 @@ const AdminDashboard = ({ initialTab }) => {
         setSelectedStudent(student);
         setDetailLoading(true);
         try {
-            const res = await api.get(`/asset/admin/students/${student.studentId}/detail`);
-            setStudentDetailData(res.data?.data || null);
+            const data = await adminStudentService.getStudentDetail(student.studentId || student.id);
+            setStudentDetailData(data || null);
         } catch (err) {
             console.error('Failed to fetch student detail:', err);
         } finally {

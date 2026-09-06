@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import api from '../../../api/axios';
+import adminMarketService from '../../../services/adminMarketService';
 
-const useMarketStore = create((set) => ({
+const useMarketStore = create((set, get) => ({
     marketOpen: true,
     mode: 'AUTO',
     openTime: '09:00',
@@ -9,12 +9,12 @@ const useMarketStore = create((set) => ({
     callAuctionStartTime: '15:20',
     statusCode: 'OPEN',
     isLoading: false,
+    _unsubscribe: null,
 
     fetchMarketStatus: async () => {
         try {
             set({ isLoading: true });
-            const res = await api.get('/admin/market/status');
-            const data = res.data?.data;
+            const data = await adminMarketService.getMarketStatus();
             if (data) {
                 set({
                     marketOpen: data.marketOpen ?? true,
@@ -39,8 +39,7 @@ const useMarketStore = create((set) => ({
     toggleMarketStatus: async () => {
         try {
             set({ isLoading: true });
-            const res = await api.post('/admin/market/toggle');
-            const data = res.data?.data;
+            const data = await adminMarketService.toggleMarketStatus();
             if (data) {
                 set({
                     marketOpen: data.marketOpen,
@@ -64,8 +63,7 @@ const useMarketStore = create((set) => ({
     updateMarketSettings: async (newSettings) => {
         try {
             set({ isLoading: true });
-            const res = await api.put('/admin/market/settings', newSettings);
-            const data = res.data?.data;
+            const data = await adminMarketService.updateMarketSettings(newSettings);
             if (data) {
                 set({
                     marketOpen: data.marketOpen,
@@ -84,8 +82,27 @@ const useMarketStore = create((set) => ({
             set({ isLoading: false });
             throw err;
         }
+    },
+
+    initRealtime: () => {
+        const currentUnsub = get()._unsubscribe;
+        if (currentUnsub) {
+            currentUnsub();
+        }
+
+        const unsub = adminMarketService.subscribeMarketStatus((updated) => {
+            set({
+                marketOpen: updated.marketOpen,
+                mode: updated.mode,
+                openTime: updated.openTime,
+                closeTime: updated.closeTime,
+                callAuctionStartTime: updated.callAuctionStartTime || '15:20',
+                statusCode: updated.statusCode
+            });
+        });
+
+        set({ _unsubscribe: unsub });
     }
 }));
 
 export default useMarketStore;
-

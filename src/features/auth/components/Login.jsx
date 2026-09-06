@@ -24,7 +24,7 @@ const Login = () => {
         const result = await login(studentId, password);
         if (result.success) {
             const role = result.data?.role;
-            const isAdmin = role === 'ADMIN' || role === 'MANAGER' || role === 'ROLE_ADMIN' || role === 'ROLE_MANAGER';
+            const isAdmin = role === 'ADMIN' || role === 'MANAGER' || role === 'ROLE_ADMIN' || role === 'ROLE_MANAGER' || role === 'ROLE_TEACHER';
             if (!isAdmin) {
                 localStorage.removeItem('jwt_token');
                 setErrorMessage('관리자(교사) 전용 포털입니다. 학생 계정은 학생용 포털(5173)을 이용해 주세요.');

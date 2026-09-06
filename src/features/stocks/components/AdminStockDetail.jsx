@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 import { ArrowLeft, RefreshCw, Users, TrendingUp, Activity, Clock, ShieldCheck, ArrowRightLeft } from 'lucide-react';
-import api from '../../../api/axios';
+import adminStockService from '../../../services/adminStockService';
 import './AdminStockDetail.css';
 
 const AdminStockDetail = () => {
@@ -19,13 +19,12 @@ const AdminStockDetail = () => {
     const fetchData = async () => {
         setIsRefreshing(true);
         try {
-            const [infoRes, historyRes, txRes] = await Promise.all([
-                api.get(`/stock/${stockId}`).catch(() => ({ data: { success: false, data: null } })),
-                api.get(`/stock/${stockId}/history`).catch(() => ({ data: { success: false, data: [] } })),
-                api.get(`/admin/stocks/${stockId}/transactions`).catch(() => ({ data: { success: false, data: [] } }))
+            const [info, history, txList] = await Promise.all([
+                adminStockService.getStockDetail(stockId),
+                adminStockService.getStockHistory(stockId),
+                adminStockService.getStockTransactions(stockId)
             ]);
 
-            const info = infoRes.data?.data;
             if (!info) {
                 setError('종목 정보를 찾을 수 없습니다.');
                 setIsLoading(false);
@@ -34,10 +33,11 @@ const AdminStockDetail = () => {
             }
 
             setStockInfo(info);
-            setTransactions(Array.isArray(txRes.data?.data) ? txRes.data.data : []);
+            setTransactions(Array.isArray(txList) ? txList : []);
+            setError('');
 
             const initialPrice = info.nowPrice ?? info.pubPrice ?? 0;
-            const rawHistory = Array.isArray(historyRes.data?.data) ? historyRes.data.data : [];
+            const rawHistory = Array.isArray(history) ? history : [];
             
             // 일별 거래 기록 OHLC 집계 (category x축용 문자열 라벨)
             const dayGroups = {};

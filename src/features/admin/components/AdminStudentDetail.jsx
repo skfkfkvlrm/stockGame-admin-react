@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 import { ArrowLeft, User, DollarSign, TrendingUp, TrendingDown, PieChart, Clock, Ticket, RefreshCw, PlusCircle, MinusCircle, AlertCircle } from 'lucide-react';
-import api from '../../../api/axios';
+import adminStudentService from '../../../services/adminStudentService';
 import './AdminStudentDetail.css';
 
 const AdminStudentDetail = () => {
@@ -28,36 +28,23 @@ const AdminStudentDetail = () => {
     const fetchAllStudentDetails = async () => {
         setIsRefreshing(true);
         try {
-            const [assetRes, pointsRes, couponsRes, allStudentsRes] = await Promise.all([
-                api.get(`/asset/admin/students/${studentId}/detail`).catch(() => ({ data: { success: false, data: null } })),
-                api.get(`/admin/students/${studentId}/points`).catch(() => ({ data: { success: false, data: [] } })),
-                api.get(`/admin/students/${studentId}/coupons`).catch(() => ({ data: { success: false, data: [] } })),
-                api.get('/admin/students').catch(() => ({ data: { success: false, data: [] } }))
+            const [detail, points, couponsData] = await Promise.all([
+                adminStudentService.getStudentDetail(studentId),
+                adminStudentService.getStudentPoints(null, studentId),
+                adminStudentService.getStudentCoupons(null, studentId)
             ]);
 
-            const asset = assetRes.data?.data;
-            const allStudents = allStudentsRes.data?.data || [];
-            const profile = allStudents.find(s => s.studentId === studentId) || { studentId, name: studentId };
-
-            if (!asset && !profile) {
+            if (!detail) {
                 setError('학생 정보를 찾을 수 없습니다.');
                 setIsLoading(false);
                 setIsRefreshing(false);
                 return;
             }
 
-            setStudentData({
-                ...profile,
-                ...(asset || {}),
-                totalAsset: asset?.totalAsset ?? profile.totalPoint ?? 0,
-                totalPoint: asset?.totalPoint ?? profile.totalPoint ?? 0,
-                myStocks: asset?.myStocks || [],
-                totalProfit: asset?.totalProfit || 0
-            });
-
-            setPointsHistory(Array.isArray(pointsRes.data?.data) ? pointsRes.data.data : []);
-            setCoupons(Array.isArray(couponsRes.data?.data) ? couponsRes.data.data : []);
-
+            setStudentData(detail);
+            setPointsHistory(Array.isArray(points) ? points : []);
+            setCoupons(Array.isArray(couponsData) ? couponsData : []);
+            setError('');
         } catch (err) {
             console.error('Fetch student detail error:', err);
             setError('학생 데이터를 불러오는 중 오류가 발생했습니다.');
@@ -94,17 +81,19 @@ const AdminStudentDetail = () => {
         setIsSubmittingPoint(true);
 
         try {
-            await api.post(`/admin/students/${studentId}/point`, {
-                amount: finalAmount,
-                reason: pointReason || (pointType === 'add' ? '교사 수동 지급' : '교사 수동 차감')
-            });
+            await adminStudentService.adjustPoint(
+                studentData?.id || studentData?.userId,
+                finalAmount,
+                pointReason || (pointType === 'add' ? '교사 수동 지급' : '교사 수동 차감'),
+                studentId
+            );
             alert(`${studentData?.name || studentId} 학생에게 포인트 ${actionText}이 완료되었습니다.`);
             setPointModalOpen(false);
             setPointAmount('');
             setPointReason('');
             fetchAllStudentDetails();
         } catch (err) {
-            alert(err.response?.data?.message || '포인트 반영에 실패했습니다.');
+            alert(err.message || '포인트 반영에 실패했습니다.');
         } finally {
             setIsSubmittingPoint(false);
         }
