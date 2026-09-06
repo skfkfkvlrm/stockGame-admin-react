@@ -173,6 +173,56 @@ const AdminDashboard = ({ initialTab }) => {
     const [delistCompensation, setDelistCompensation] = useState('');
     const [delistReason, setDelistReason] = useState('');
     
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [resetDefaultPoint, setResetDefaultPoint] = useState(100000);
+    const [resetStockPrice, setResetStockPrice] = useState(true);
+    const [isResetting, setIsResetting] = useState(false);
+
+    const handleResetClassroomSession = async () => {
+        if (!window.confirm('정말로 교실 모의투자 세션을 초기화하시겠습니까? 학생들의 보유 주식이 청산되고 포인트가 재설정됩니다.')) {
+            return;
+        }
+        setIsResetting(true);
+        try {
+            const res = await adminMarketService.resetClassroomSession(Number(resetDefaultPoint), resetStockPrice);
+            alert(`✅ 교실 세션 리셋 완료!\n- 학생 자산 리셋: ${res?.resetStudentsCount || 0}명\n- 미체결 주문 취소: ${res?.cancelledOrdersCount || 0}건\n- 보유주식 초기화: ${res?.clearedHoldingsCount || 0}건\n- 종목 시세 원복: ${res?.resetStocksCount || 0}개`);
+            setIsResetModalOpen(false);
+            fetchData();
+        } catch (err) {
+            alert(`세션 초기화 실패: ${err.message}`);
+        } finally {
+            setIsResetting(false);
+        }
+    };
+
+    const handleExportStudentLedgerCSV = () => {
+        if (!students || students.length === 0) {
+            alert('내보낼 학생 데이터가 없습니다.');
+            return;
+        }
+        const headers = ['학번', '이름', '학년', '반', '번호', '보유포인트', '보유쿠폰수', '가입일시'];
+        const rows = students.map(s => [
+            s.studentId || s.id,
+            `"${(s.name || '').replace(/"/g, '""')}"`,
+            s.grade || '',
+            s.className || '',
+            s.classNumber || '',
+            s.totalPoint || 0,
+            s.totalCoupon || 0,
+            s.createdAt ? new Date(s.createdAt).toLocaleString('ko-KR') : ''
+        ]);
+
+        const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `학생_모의투자_원장_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const handleOpenDelistModal = (stock) => {
         setDelistModalStock(stock);
         setDelistCompensation('');
@@ -612,6 +662,42 @@ const AdminDashboard = ({ initialTab }) => {
                     >
                         {marketOpen ? <Pause size={15} /> : <Play size={15} />}
                         {marketOpen ? '강제 수동 일시정지' : '강제 수동 즉시 개장'}
+                    </button>
+                    <button
+                        onClick={() => setIsResetModalOpen(true)}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: '#f1f5f9',
+                            color: '#475569',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <RefreshCw size={15} /> 🔄 수업 1-클릭 리셋
+                    </button>
+                    <button
+                        onClick={handleExportStudentLedgerCSV}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: '#f0fdf4',
+                            color: '#166534',
+                            border: '1px solid #bbf7d0',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        📥 원장 CSV 다운로드
                     </button>
                     <div style={{ position: 'relative' }} ref={marketSettingsRef}>
                     <button
@@ -1703,6 +1789,70 @@ const AdminDashboard = ({ initialTab }) => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* 1-Click Classroom Session Reset Modal */}
+            {isResetModalOpen && (
+                <div className="modal-overlay" onClick={() => !isResetting && setIsResetModalOpen(false)}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()} style={{
+                        background: '#ffffff', borderRadius: '16px', padding: '32px', maxWidth: '480px', width: '90%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)', borderTop: '6px solid #4f46e5'
+                    }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4f46e5', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <RefreshCw size={24} /> 🔄 차기 수업 1-클릭 세션 리셋
+                        </h2>
+                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '20px', lineHeight: '1.5' }}>
+                            다음 교시 수업을 위해 <strong>모든 학생 자산과 시장 원장을 일괄 초기화</strong>합니다.<br/>
+                            <span style={{ color: '#4f46e5' }}>• 학생 보유 주식 수량 0주 청산</span><br/>
+                            <span style={{ color: '#4f46e5' }}>• 모든 미체결 주문 일괄 취소</span><br/>
+                            <span style={{ color: '#4f46e5' }}>• 학생 포인트 기본값 복구</span>
+                        </p>
+
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: '#334155', marginBottom: '6px' }}>
+                                학생 기본 부여 포인트
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={resetDefaultPoint}
+                                onChange={(e) => setResetDefaultPoint(e.target.value)}
+                                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                                type="checkbox"
+                                id="resetStockPriceCheck"
+                                checked={resetStockPrice}
+                                onChange={(e) => setResetStockPrice(e.target.checked)}
+                                style={{ width: '16px', height: '16px' }}
+                            />
+                            <label htmlFor="resetStockPriceCheck" style={{ fontSize: '0.85rem', color: '#334155', cursor: 'pointer', fontWeight: '600' }}>
+                                종목 시세를 최초 발행가(Publication Price)로 원복
+                            </label>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                type="button"
+                                disabled={isResetting}
+                                onClick={() => setIsResetModalOpen(false)}
+                                style={{ flex: 1, padding: '10px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                            >
+                                취소
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isResetting}
+                                onClick={handleResetClassroomSession}
+                                style={{ flex: 2, padding: '10px', background: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 6px rgba(79, 70, 229, 0.2)' }}
+                            >
+                                {isResetting ? '초기화 진행 중...' : '🚀 세션 일괄 리셋 실행'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

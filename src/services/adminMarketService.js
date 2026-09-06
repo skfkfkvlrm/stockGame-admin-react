@@ -92,6 +92,25 @@ export const adminMarketService = {
     },
 
     /**
+     * 차기 수업용 교실 모의투자 세션 1-클릭 리셋
+     */
+    async resetClassroomSession(defaultPoint = 100000, resetStockPrice = true) {
+        if (isSupabaseMode) {
+            const { data, error } = await supabase.rpc('admin_reset_classroom_session', {
+                p_default_point: defaultPoint,
+                p_reset_stock_price: resetStockPrice
+            });
+            if (error) {
+                throw new Error(error.message || '교실 모의투자 세션 초기화 실패');
+            }
+            return data;
+        }
+
+        const res = await api.post('/admin/market/reset-session', { defaultPoint, resetStockPrice });
+        return res.data?.data;
+    },
+
+    /**
      * 시장 상태 변경 실시간 웹소켓 구독
      */
     subscribeMarketStatus(onUpdate) {
