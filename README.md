@@ -3,7 +3,7 @@
 Vite + React 기반으로 구축된 **교사 및 관리자 전용 주식 모의투자 관제 포털 웹 애플리케이션**입니다.  
 학생 포털([`stockGame_react`](https://github.com/skfkfkvlrm/stockGame_react))과 보안 및 인가 권한이 철저히 물리적으로 분리되어 있으며, 포트 `5174`에서 독립 구동됩니다.
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-stockGame__admin__react-181717?logo=github)](https://github.com/skfkfkvlrm/stockGame_admin_react)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-stockGame--admin--react-181717?logo=github)](https://github.com/skfkfkvlrm/stockGame-admin-react)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6-646C9A?logo=vite)](https://vitejs.dev/)
 [![Port](https://img.shields.io/badge/Port-5174-orange)]()
