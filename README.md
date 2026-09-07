@@ -6,6 +6,7 @@ Vite + React 기반으로 구축된 **교사 및 관리자 전용 주식 모의�
 [![GitHub Repo](https://img.shields.io/badge/GitHub-stockGame--admin--react-181717?logo=github)](https://github.com/skfkfkvlrm/stockGame-admin-react)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6-646C9A?logo=vite)](https://vitejs.dev/)
+[![Vercel Production](https://img.shields.io/badge/Production-admin.skfkfkvlrm.kr-black?logo=vercel)](https://admin.skfkfkvlrm.kr)
 [![Port](https://img.shields.io/badge/Port-5174-orange)]()
 
 ---
@@ -69,16 +70,18 @@ src/
 │   ├── core/                    # Admin Layout, Navbar, Guard
 │   ├── stocks/                  # 관리자용 종목 편집 폼
 │   └── points/                  # 포인트 지급/차감 모달
-└── App.jsx                      # Protected Route (/admin 전용 가드)
+└── App.jsx                      # Protected Route (/admin 전용 가드 & 와일드카드 Fallback)
 ```
 
 ---
 
-## 🔒 5. 보안 수칙 준수 (`common_guardrails.md`)
+## 🔒 5. 보안 및 안전 가드 준수 (`common_guardrails.md`)
 
+- **Vercel SPA 404 NOT_FOUND 원천 방지**: `vercel.json` SPA Rewrite(`"/(.*)" -> "/index.html"`) 및 App.jsx 전역 와일드카드 Fallback 라우트(`<Route path="*" element={<Navigate to="/admin" replace />} />`) 배치.
 - **음수 입력 차단**: 포인트 지급/차감 및 발행잔량 입력 필드에서 `-` 및 `e` 키 입력 방지 (`onKeyDown`).
 - **권한 격리**: 일반 학생 계정 토큰으로 접근 시 즉시 세션 파기 및 로그인 화면으로 리다이렉트.
 - **React Hook 순서 보장**: 모든 상태(`activeModalTab`, `isLoading` 등)는 컴포넌트 최상단에 선언하여 렌더링 무결성 유지.
+
 
 ---
 
