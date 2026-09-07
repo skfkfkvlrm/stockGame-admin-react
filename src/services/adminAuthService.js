@@ -8,12 +8,25 @@ export const adminAuthService = {
     async login(studentId, password) {
         if (isSupabaseMode) {
             const cleanId = studentId.trim();
-            const email = `${cleanId}@stockgame.local`;
+            let email = `${cleanId}@skfkfkvlrm.kr`;
 
-            const { data, error } = await supabase.auth.signInWithPassword({
+            let { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
             });
+
+            // 하위 호환성 지원: 기존 admin@stockgame.local 계정 시도
+            if (error && error.message === 'Invalid login credentials') {
+                const legacyEmail = `${cleanId}@stockgame.local`;
+                const legacyRes = await supabase.auth.signInWithPassword({
+                    email: legacyEmail,
+                    password
+                });
+                if (!legacyRes.error) {
+                    data = legacyRes.data;
+                    error = null;
+                }
+            }
 
             if (error) {
                 const msg = error.message === 'Invalid login credentials'

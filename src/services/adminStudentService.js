@@ -75,7 +75,7 @@ export const adminStudentService = {
     async createStudent({ studentId, password, name, grade, className, classNumber }) {
         if (isSupabaseMode) {
             const cleanId = studentId.trim();
-            const email = `${cleanId}@stockgame.local`;
+            const email = `${cleanId}@skfkfkvlrm.kr`;
 
             const { data, error } = await supabase.auth.signUp({
                 email,
