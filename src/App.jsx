@@ -42,8 +42,10 @@ function App() {
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="stocks/:stockId" element={<RequireAdmin><AdminStockDetail /></RequireAdmin>} />
             <Route path="students/:studentId" element={<RequireAdmin><AdminStudentDetail /></RequireAdmin>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
+
+        {/* 전역 Fallback: 정의되지 않은 모든 경로는 메인으로 리디렉션 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
