@@ -182,16 +182,76 @@ export const adminStockService = {
                 .order('created_at', { ascending: false })
                 .limit(50);
 
-            if (error) return [];
+            if (error || !data) return [];
 
-            return (data || []).map((tx) => ({
-                id: tx.id,
-                tradePrice: tx.trade_price,
-                tradeAmount: tx.trade_amount,
-                createdAt: tx.created_at,
-                buyerId: tx.buyer_id,
-                sellerId: tx.seller_id
-            }));
+            // 구매자 및 판매자 프로필 정보 배치 조회
+            const userIds = [...new Set(
+                data.flatMap(tx => [tx.buyer_id, tx.seller_id]).filter(Boolean)
+            )];
+
+            const userMap = new Map();
+            if (userIds.length > 0) {
+                const { data: profiles, error: profileErr } = await supabase
+                    .from('profiles')
+                    .select('id, student_id, name, grade, class_name')
+                    .in('id', userIds);
+
+                if (!profileErr && profiles) {
+                    profiles.forEach(p => userMap.set(p.id, p));
+                }
+            }
+
+            return data.map((tx) => {
+                const buyer = userMap.get(tx.buyer_id);
+                const seller = tx.seller_id ? userMap.get(tx.seller_id) : null;
+                const isLp = !tx.seller_id;
+
+                const buyerName = buyer 
+                    ? (buyer.name && buyer.student_id && buyer.name !== buyer.student_id ? `${buyer.name} (${buyer.student_id})` : (buyer.name || buyer.student_id)) 
+                    : '학생';
+                const buyerStudentId = buyer?.student_id || tx.buyer_id;
+
+                const sellerName = isLp 
+                    ? '초기발행(LP)' 
+                    : (seller ? (seller.name && seller.student_id && seller.name !== seller.student_id ? `${seller.name} (${seller.student_id})` : (seller.name || seller.student_id)) : '학생');
+                const sellerStudentId = isLp ? 'SYSTEM_LP' : (seller?.student_id || tx.seller_id);
+
+                // sell_order_id가 null이거나 buy_order_id > sell_order_id인 경우 매수 주문이 체결 유발(Taker)
+                const isBuyTaker = isLp || !tx.sell_order_id || (Number(tx.buy_order_id) > Number(tx.sell_order_id));
+                const tradeType = isBuyTaker ? '매수' : '매도';
+                const totalPrice = Number(tx.total_trade_amount) || ((Number(tx.amount) || 0) * (Number(tx.price) || 0));
+
+                return {
+                    id: tx.id,
+                    transaction_id: tx.id,
+                    transactionId: tx.id,
+                    stock_id: tx.stock_id,
+                    stockId: tx.stock_id,
+                    created_at: tx.created_at,
+                    created_date: tx.created_at,
+                    createdDate: tx.created_at,
+                    price: tx.price,
+                    tradePrice: tx.price,
+                    amount: tx.amount,
+                    tradeAmount: tx.amount,
+                    total_price: totalPrice,
+                    totalPrice: totalPrice,
+                    trade_type: tradeType,
+                    tradeType: tradeType,
+                    buyer_id: tx.buyer_id,
+                    buyerId: tx.buyer_id,
+                    buyer_name: buyerName,
+                    buyerName: buyerName,
+                    buyer_student_id: buyerStudentId,
+                    buyerStudentId: buyerStudentId,
+                    seller_id: tx.seller_id,
+                    sellerId: tx.seller_id,
+                    seller_name: sellerName,
+                    sellerName: sellerName,
+                    seller_student_id: sellerStudentId,
+                    sellerStudentId: sellerStudentId
+                };
+            });
         }
 
         const res = await api.get(`/admin/stocks/${stockId}/transactions`).catch(() => ({ data: { data: [] } }));

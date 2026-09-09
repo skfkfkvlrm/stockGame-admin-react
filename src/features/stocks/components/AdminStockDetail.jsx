@@ -41,30 +41,60 @@ const AdminStockDetail = () => {
             
             // 일별 거래 기록 OHLC 집계 (category x축용 문자열 라벨)
             const dayGroups = {};
-            rawHistory.forEach(item => {
-                const d = item.baseDate || item.date || item.createdDate;
-                const dateObj = new Date(d || Date.now());
-                const dateKey = d ? dateObj.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
-                const label = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
-                const p = item.closePrice ?? item.price ?? initialPrice;
-                const open = item.openPrice ?? p;
-                const high = item.highPrice ?? Math.max(open, p);
-                const low = item.lowPrice ?? Math.min(open, p);
-                const close = item.closePrice ?? p;
 
-                if (!dayGroups[dateKey]) {
-                    dayGroups[dateKey] = { label, rawTime: dateObj.getTime(), open, high, low, close };
-                } else {
-                    dayGroups[dateKey].high = Math.max(dayGroups[dateKey].high, high);
-                    dayGroups[dateKey].low = Math.min(dayGroups[dateKey].low, low);
-                    dayGroups[dateKey].close = close;
-                }
-            });
+            if (rawHistory.length > 0) {
+                rawHistory.forEach(item => {
+                    const d = item.baseDate || item.date || item.createdDate;
+                    const dateObj = new Date(d || Date.now());
+                    const dateKey = d ? dateObj.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+                    const label = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+                    const p = item.closePrice ?? item.price ?? initialPrice;
+                    const open = item.openPrice ?? p;
+                    const high = item.highPrice ?? Math.max(open, p);
+                    const low = item.lowPrice ?? Math.min(open, p);
+                    const close = item.closePrice ?? p;
+
+                    if (!dayGroups[dateKey]) {
+                        dayGroups[dateKey] = { label, rawTime: dateObj.getTime(), open, high, low, close };
+                    } else {
+                        dayGroups[dateKey].high = Math.max(dayGroups[dateKey].high, high);
+                        dayGroups[dateKey].low = Math.min(dayGroups[dateKey].low, low);
+                        dayGroups[dateKey].close = close;
+                    }
+                });
+            } else if (Array.isArray(txList) && txList.length > 0) {
+                // 일별 시세 이력이 없을 때 실시간 체결 기록(txList)으로 일별 OHLC 생성
+                const ascTx = [...txList].reverse();
+                ascTx.forEach(tx => {
+                    const d = tx.created_at || tx.created_date || tx.createdDate;
+                    const dateObj = new Date(d || Date.now());
+                    const dateKey = !isNaN(dateObj.getTime()) ? dateObj.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+                    const label = !isNaN(dateObj.getTime()) 
+                        ? `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`
+                        : '01/01';
+                    const p = Number(tx.price ?? tx.tradePrice ?? initialPrice);
+
+                    if (!dayGroups[dateKey]) {
+                        dayGroups[dateKey] = { label, rawTime: dateObj.getTime(), open: p, high: p, low: p, close: p };
+                    } else {
+                        dayGroups[dateKey].high = Math.max(dayGroups[dateKey].high, p);
+                        dayGroups[dateKey].low = Math.min(dayGroups[dateKey].low, p);
+                        dayGroups[dateKey].close = p;
+                    }
+                });
+            }
 
             // 실제 거래일만 정렬하여 표시 (관리자 차트는 전체 기간 표시)
-            const mappedHistory = Object.values(dayGroups)
+            let mappedHistory = Object.values(dayGroups)
                 .sort((a, b) => a.rawTime - b.rawTime)
                 .map(g => ({ x: g.label, y: [g.open, g.high, g.low, g.close] }));
+
+            // 시세 이력과 체결 내역이 모두 없을 때 최초 발행가 기준 캔들 생성
+            if (mappedHistory.length === 0 && initialPrice > 0) {
+                const today = new Date();
+                const label = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+                mappedHistory = [{ x: label, y: [initialPrice, initialPrice, initialPrice, initialPrice] }];
+            }
 
             setChartData([{ data: mappedHistory }]);
 
@@ -150,6 +180,7 @@ const AdminStockDetail = () => {
     const changeRate = prevPrice > 0 ? ((priceDiff / prevPrice) * 100).toFixed(2) : 0;
     const isUp = priceDiff > 0;
     const isDown = priceDiff < 0;
+    const cumulativeVolume = transactions.reduce((sum, tx) => sum + (Number(tx.amount ?? tx.tradeAmount) || 0), 0);
 
     return (
         <div className="admin-stock-detail-container">
@@ -245,7 +276,7 @@ const AdminStockDetail = () => {
                             </div>
                             <div className="admin-stat-item">
                                 <span className="admin-stat-label">누적 체결 거래량</span>
-                                <span className="admin-stat-val">{(stockInfo.tradeVolume ?? 0).toLocaleString()} 주</span>
+                                <span className="admin-stat-val">{(stockInfo.tradeVolume || cumulativeVolume).toLocaleString()} 주</span>
                             </div>
                             <div className="admin-stat-item">
                                 <span className="admin-stat-label">총 체결 건수</span>
@@ -284,86 +315,62 @@ const AdminStockDetail = () => {
                         </thead>
                         <tbody>
                             {transactions.length > 0 ? (
-                                transactions.map((tx) => (
-                                    <tr key={tx.transaction_id || tx.transactionId}>
-                                        <td style={{ fontWeight: 'bold', color: '#64748b' }}>#{tx.transaction_id || tx.transactionId}</td>
-                                        <td style={{ color: '#475569', fontSize: '0.85rem' }}>
-                                            <Clock size={13} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
-                                            {formatDate(tx.created_date || tx.createdDate)}
-                                        </td>
-                                        <td>
-                                            <span className={`trade-type-badge ${tx.trade_type === '매수' ? 'buy' : 'sell'}`}>
-                                                {tx.trade_type || '체결'}
-                                            </span>
-                                        </td>
-                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: tx.trade_type === '매수' ? '#dc2626' : (tx.trade_type === '매도' ? '#2563eb' : '#0f172a') }}>
-                                            {(tx.price || 0).toLocaleString()} P
-                                        </td>
-                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#64748b' }}>
-                                            {(tx.amount || 0).toLocaleString()} 주
-                                        </td>
-                                        <td style={{ textAlign: 'right', fontWeight: '800', color: '#0f172a' }}>
-                                            {((tx.total_price ?? (tx.amount * tx.price)) || 0).toLocaleString()} P
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                {tx.trade_type === '매도' ? (
-                                                    <>
-                                                        <span className="admin-student-badge minimal seller" title={tx.seller_student_id || tx.sellerStudentId}>{tx.seller_name || tx.sellerName || '학생'}</span>
-                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
-                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
-                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
-                                                        <span className={`admin-student-badge minimal ${tx.seller_student_id === 'SYSTEM_LP' ? 'lp' : 'seller'}`} title={tx.seller_student_id || tx.sellerStudentId}>
-                                                            {tx.seller_student_id === 'SYSTEM_LP' ? '초기발행(LP)' : (tx.seller_name || tx.sellerName || '학생')}
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                {tx.trade_type === '매도' ? (
-                                                    <>
-                                                        <span className="admin-student-badge minimal seller" title={tx.seller_student_id || tx.sellerStudentId}>{tx.seller_name || tx.sellerName || '학생'}</span>
-                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
-                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
-                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
-                                                        <span className={`admin-student-badge minimal ${tx.seller_student_id === 'SYSTEM_LP' ? 'lp' : 'seller'}`} title={tx.seller_student_id || tx.sellerStudentId}>
-                                                            {tx.seller_student_id === 'SYSTEM_LP' ? '초기발행(LP)' : (tx.seller_name || tx.sellerName || '학생')}
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                {tx.trade_type === '매도' ? (
-                                                    <>
-                                                        <span className="admin-student-badge minimal seller" title={tx.seller_student_id || tx.sellerStudentId}>{tx.seller_name || tx.sellerName || '학생'}</span>
-                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
-                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="admin-student-badge minimal buyer" title={tx.buyer_student_id || tx.buyerStudentId}>{tx.buyer_name || tx.buyerName || '학생'}</span>
-                                                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
-                                                        <span className={`admin-student-badge minimal ${tx.seller_student_id === 'SYSTEM_LP' ? 'lp' : 'seller'}`} title={tx.seller_student_id || tx.sellerStudentId}>
-                                                            {tx.seller_student_id === 'SYSTEM_LP' ? '초기발행(LP)' : (tx.seller_name || tx.sellerName || '학생')}
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                transactions.map((tx) => {
+                                    const txId = tx.transaction_id ?? tx.transactionId ?? tx.id;
+                                    const txDate = tx.created_date ?? tx.createdDate ?? tx.created_at;
+                                    const txType = tx.trade_type ?? tx.tradeType ?? '체결';
+                                    const txPrice = Number(tx.price ?? tx.tradePrice) || 0;
+                                    const txAmount = Number(tx.amount ?? tx.tradeAmount) || 0;
+                                    const txTotal = Number(tx.total_price ?? tx.totalPrice ?? (txAmount * txPrice)) || 0;
+                                    const buyerName = tx.buyer_name ?? tx.buyerName ?? '학생';
+                                    const buyerId = tx.buyer_student_id ?? tx.buyerStudentId ?? tx.buyer_id;
+                                    const sellerId = tx.seller_student_id ?? tx.sellerStudentId ?? tx.seller_id;
+                                    const isLp = !tx.seller_id || sellerId === 'SYSTEM_LP';
+                                    const sellerName = isLp ? '초기발행(LP)' : (tx.seller_name ?? tx.sellerName ?? '학생');
+
+                                    return (
+                                        <tr key={txId || Math.random()}>
+                                            <td style={{ fontWeight: 'bold', color: '#64748b' }}>#{txId}</td>
+                                            <td style={{ color: '#475569', fontSize: '0.85rem' }}>
+                                                <Clock size={13} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
+                                                {formatDate(txDate)}
+                                            </td>
+                                            <td>
+                                                <span className={`trade-type-badge ${txType === '매수' ? 'buy' : 'sell'}`}>
+                                                    {txType}
+                                                </span>
+                                            </td>
+                                            <td style={{ textAlign: 'right', fontWeight: 'bold', color: txType === '매수' ? '#dc2626' : (txType === '매도' ? '#2563eb' : '#0f172a') }}>
+                                                {txPrice.toLocaleString()} P
+                                            </td>
+                                            <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#64748b' }}>
+                                                {txAmount.toLocaleString()} 주
+                                            </td>
+                                            <td style={{ textAlign: 'right', fontWeight: '800', color: '#0f172a' }}>
+                                                {txTotal.toLocaleString()} P
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                    {txType === '매도' ? (
+                                                        <>
+                                                            <span className="admin-student-badge minimal seller" title={sellerId}>{sellerName}</span>
+                                                            <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                            <span className="admin-student-badge minimal buyer" title={buyerId}>{buyerName}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="admin-student-badge minimal buyer" title={buyerId}>{buyerName}</span>
+                                                            <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>➔</span>
+                                                            <span className={`admin-student-badge minimal ${isLp ? 'lp' : 'seller'}`} title={sellerId}>
+                                                                {sellerName}
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan="7" style={{ textAlign: 'center', padding: '50px 0', color: '#94a3b8' }}>
