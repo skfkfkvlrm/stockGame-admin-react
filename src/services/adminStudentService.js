@@ -196,15 +196,28 @@ export const adminStudentService = {
 
             if (error) return [];
 
-            return (data || []).map((pt) => ({
-                id: pt.id,
-                point: pt.amount,
-                currentPoint: pt.balance_after,
-                description: pt.description,
-                reasonType: pt.reason_type,
-                createdDate: pt.created_at,
-                date: pt.created_at
-            }));
+            return (data || []).map((pt) => {
+                const amount = Number(pt.amount) || 0;
+                const desc = pt.description || (pt.reason_type === 'INITIAL_GRANT' ? '기초 투자금 지급' : (pt.reason_type === 'COUPON_PURCHASE' ? '상점 쿠폰 구매' : (pt.reason_type === 'STOCK_BUY_ESCROW' ? '주식 매수 체결/증거금' : (pt.reason_type === 'STOCK_SELL_SETTLEMENT' ? '주식 매도 정산' : (amount >= 0 ? '포인트 지급' : '포인트 차감')))));
+                return {
+                    id: pt.id,
+                    point: amount,
+                    pointChange: amount,
+                    amount: amount,
+                    changedAmount: amount,
+                    currentPoint: pt.balance_after,
+                    balanceAfter: pt.balance_after,
+                    description: desc,
+                    historyContent: desc,
+                    reason: desc,
+                    content: desc,
+                    reasonType: pt.reason_type,
+                    historyType: amount > 0 ? '지급' : (amount < 0 ? '차감' : '변동'),
+                    createdDate: pt.created_at,
+                    date: pt.created_at,
+                    historyDate: pt.created_at
+                };
+            });
         }
 
         const res = await api.get(`/admin/students/${studentIdStr || userId}/points`).catch(() => ({ data: { data: [] } }));

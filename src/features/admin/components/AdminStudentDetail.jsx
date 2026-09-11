@@ -369,11 +369,12 @@ const AdminStudentDetail = () => {
                                 </thead>
                                 <tbody>
                                     {pointsHistory.map((ph, idx) => {
-                                        const changeVal = ph.pointChange ?? ph.changedAmount ?? ph.amount ?? 0;
-                                        const isPlus = changeVal >= 0;
-                                        const contentText = ph.historyContent || ph.reason || ph.content || '포인트 변동';
-                                        const typeText = ph.historyType || (isPlus ? '지급' : '차감');
-                                        const dateRaw = ph.historyDate || ph.createdDate;
+                                        const changeVal = ph.pointChange ?? ph.changedAmount ?? ph.amount ?? ph.point ?? 0;
+                                        const isPlus = changeVal > 0;
+                                        const isMinus = changeVal < 0;
+                                        const contentText = ph.historyContent || ph.description || ph.reason || ph.content || '포인트 변동';
+                                        const typeText = ph.historyType || (changeVal > 0 ? '지급' : (changeVal < 0 ? '차감' : '변동'));
+                                        const dateRaw = ph.historyDate || ph.createdDate || ph.date;
                                         const dateFormatted = dateRaw ? new Date(dateRaw).toLocaleString('ko-KR') : '-';
 
                                         return (
@@ -387,8 +388,8 @@ const AdminStudentDetail = () => {
                                                         borderRadius: '6px',
                                                         fontSize: '0.8rem',
                                                         fontWeight: '700',
-                                                        background: isPlus ? '#ecfdf5' : '#fef2f2',
-                                                        color: isPlus ? '#059669' : '#dc2626'
+                                                        background: isPlus ? '#ecfdf5' : (isMinus ? '#fef2f2' : '#f1f5f9'),
+                                                        color: isPlus ? '#059669' : (isMinus ? '#dc2626' : '#64748b')
                                                     }}>
                                                         {typeText}
                                                     </span>
@@ -396,8 +397,8 @@ const AdminStudentDetail = () => {
                                                 <td style={{ fontWeight: '600', color: '#1e293b' }}>
                                                     {contentText}
                                                 </td>
-                                                <td style={{ fontWeight: '800', textAlign: 'right', color: isPlus ? '#10b981' : '#ef4444' }}>
-                                                    {isPlus ? '+' : ''}{changeVal.toLocaleString()} P
+                                                <td style={{ fontWeight: '800', textAlign: 'right', color: isPlus ? '#10b981' : (isMinus ? '#ef4444' : '#64748b') }}>
+                                                    {changeVal > 0 ? '+' : ''}{changeVal.toLocaleString()} P
                                                 </td>
                                             </tr>
                                         );
