@@ -98,7 +98,11 @@ const AdminDashboard = ({ initialTab }) => {
         }
         try {
             const data = await toggleMarketStatus();
-            alert(`주식 시장이 [${data?.marketOpen ? '수동 개장' : '수동 점검(휴장)'}] 상태로 전환되었습니다.`);
+            let msg = `주식 시장이 [${data?.marketOpen ? '수동 개장' : '수동 점검(휴장)'}] 상태로 전환되었습니다.`;
+            if (data?.auctionResult && data?.auctionResult?.total_trades_count > 0) {
+                msg += `\n\n🎉 [개장 동시호가 자동 체결 완료]\n${data.auctionResult.message}`;
+            }
+            alert(msg);
         } catch (err) {
             alert('시장 상태 변경 실패');
         }

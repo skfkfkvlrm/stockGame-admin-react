@@ -77,14 +77,17 @@ export const adminMarketService = {
     },
 
     /**
-     * 장 마감 동시호가 단일가 일괄 체결
+     * 장 마감 동시호가 단일가 일괄 체결 (RPC)
      */
-    async executeClosingAuction() {
+    async executeClosingAuction(stockId = null) {
         if (isSupabaseMode) {
-            return {
-                success: true,
-                message: '동시호가 단일가 일괄 체결이 완료되었습니다.'
-            };
+            const { data, error } = await supabase.rpc('execute_call_auction', {
+                p_stock_id: stockId
+            });
+            if (error) {
+                throw new Error(error.message || '동시호가 단일가 체결 실패');
+            }
+            return data;
         }
 
         const res = await api.post('/stock/admin/market/execute-closing-auction');
