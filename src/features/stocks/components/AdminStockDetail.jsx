@@ -125,8 +125,11 @@ const AdminStockDetail = () => {
         xaxis: { 
             type: 'category',
             labels: { 
-                style: { colors: '#64748b' },
+                rotate: 0,
+                rotateAlways: false,
+                style: { colors: '#64748b', fontSize: '0.75rem' },
                 hideOverlappingLabels: true,
+                trim: false
             } 
         },
         yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => `${v.toLocaleString()}원` } },
