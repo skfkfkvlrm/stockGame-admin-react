@@ -126,7 +126,7 @@ const AdminStockDetail = () => {
             type: 'category',
             labels: { 
                 rotate: 0,
-                rotateAlways: false,
+                rotateAlways: true,
                 style: { colors: '#64748b', fontSize: '0.75rem' },
                 hideOverlappingLabels: true,
                 trim: false
