@@ -79,7 +79,7 @@ src/
 
 ---
 
-## 🔒 5. 보안 및 안전 가드 준수 (`common_guardrails.md`)
+## 🔒 5. 보안 및 안전 가드 준수
 
 - **Vercel SPA 404 NOT_FOUND 원천 방지**: `vercel.json` SPA Rewrite(`"/(.*)" -> "/index.html"`) 및 App.jsx 전역 와일드카드 Fallback 라우트(`<Route path="*" element={<Navigate to="/admin" replace />} />`) 배치.
 - **음수 입력 차단**: 포인트 지급/차감 및 발행잔량 입력 필드에서 `-` 및 `e` 키 입력 방지 (`onKeyDown`).
