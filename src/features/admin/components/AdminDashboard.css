@@ -187,6 +187,7 @@
 }
 
 /* Table Card & Split Scroll Architecture */
+.table-card.glass-panel,
 .table-card,
 .table-container {
     border-radius: 14px;
@@ -206,7 +207,6 @@
 
 .table-header-wrapper {
     background: #1e293b;
-    border-radius: 14px 14px 0 0;
     overflow: hidden;
     scrollbar-gutter: stable;
 }
@@ -270,10 +270,15 @@
     text-overflow: ellipsis;
 }
 
+.admin-table th:first-child,
+.admin-table td:first-child {
+    padding-left: 1.25rem;
+}
+
 .admin-table th:last-child,
 .admin-table td:last-child {
     overflow: visible;
-    padding-right: 12px;
+    padding-right: 1.25rem;
 }
 
 .admin-table td {
