@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, TrendingUp, Store, Search, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, Plus, Clock, Settings, Play, Pause } from 'lucide-react';
+import { Users, TrendingUp, Store, Search, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, Plus, Clock, Settings, Play, Pause, ChevronDown } from 'lucide-react';
 import useMarketStore from '../store/useMarketStore';
 import adminStockService from '../../../services/adminStockService';
 import adminStudentService from '../../../services/adminStudentService';
@@ -38,6 +38,7 @@ const AdminDashboard = ({ initialTab }) => {
     const updateMarketSettings = useMarketStore((state) => state.updateMarketSettings);
 
     const [isEditingMarket, setIsEditingMarket] = useState(false);
+    const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
     const [editMode, setEditMode] = useState('AUTO');
     const [editOpenTime, setEditOpenTime] = useState('09:00');
     const [editCloseTime, setEditCloseTime] = useState('15:30');
@@ -49,10 +50,11 @@ const AdminDashboard = ({ initialTab }) => {
         const handleClickOutside = (event) => {
             if (marketSettingsRef.current && !marketSettingsRef.current.contains(event.target)) {
                 setIsEditingMarket(false);
+                setIsMoreMenuOpen(false);
             }
         };
 
-        if (isEditingMarket) {
+        if (isEditingMarket || isMoreMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
             document.addEventListener('touchstart', handleClickOutside);
         }
@@ -60,7 +62,7 @@ const AdminDashboard = ({ initialTab }) => {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('touchstart', handleClickOutside);
         };
-    }, [isEditingMarket]);
+    }, [isEditingMarket, isMoreMenuOpen]);
 
     useEffect(() => {
         useMarketStore.getState().initRealtime();
@@ -646,26 +648,6 @@ const AdminDashboard = ({ initialTab }) => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
                     <button
-                        onClick={handleExecuteClosingAuction}
-                        disabled={isExecutingAuction}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 14px',
-                            background: '#fef3c7',
-                            color: '#b45309',
-                            border: '1px solid #fde68a',
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            fontWeight: '700',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <RefreshCw size={15} className={isExecutingAuction ? 'spin' : ''} />
-                        동시호가 일괄 체결 실행
-                    </button>
-                    <button
                         onClick={handleToggleMarket}
                         style={{
                             display: 'inline-flex',
@@ -685,82 +667,89 @@ const AdminDashboard = ({ initialTab }) => {
                         {marketOpen ? '강제 수동 일시정지' : '강제 수동 즉시 개장'}
                     </button>
                     <button
-                        onClick={() => setIsResetModalOpen(true)}
+                        onClick={handleExecuteClosingAuction}
+                        disabled={isExecutingAuction}
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
                             padding: '8px 14px',
-                            background: '#f1f5f9',
-                            color: '#475569',
-                            border: '1px solid #cbd5e1',
+                            background: '#fef3c7',
+                            color: '#b45309',
+                            border: '1px solid #fde68a',
                             borderRadius: '8px',
                             fontSize: '0.85rem',
                             fontWeight: '700',
                             cursor: 'pointer'
                         }}
                     >
-                        <RefreshCw size={15} /> 🔄 수업 1-클릭 리셋
-                    </button>
-                    <button
-                        disabled={isRollingBack}
-                        onClick={handleRollbackDemoSession}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 14px',
-                            background: '#fff1f2',
-                            color: '#e11d48',
-                            border: '1px solid #fecdd3',
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            fontWeight: '700',
-                            cursor: isRollingBack ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        <ShieldCheck size={15} /> {isRollingBack ? '복구 중...' : '🛡️ 데모 세션 원상복구'}
-                    </button>
-                    <button
-                        onClick={handleExportStudentLedgerCSV}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 14px',
-                            background: '#f0fdf4',
-                            color: '#166534',
-                            border: '1px solid #bbf7d0',
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            fontWeight: '700',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        📥 원장 CSV 다운로드
-                    </button>
-                    <div style={{ position: 'relative' }} ref={marketSettingsRef}>
-                    <button
-                        onClick={() => setIsEditingMarket(!isEditingMarket)}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 14px',
-                            background: isEditingMarket ? '#e0e7ff' : '#f8fafc',
-                            color: isEditingMarket ? '#4338ca' : '#334155',
-                            border: `1px solid ${isEditingMarket ? '#818cf8' : '#cbd5e1'}`,
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
-                        }}
-                    >
-                        <Settings size={15} /> 운영시간/모드 변경
+                        <RefreshCw size={15} className={isExecutingAuction ? 'spin' : ''} />
+                        동시호가 일괄 체결
                     </button>
 
-                    {isEditingMarket && (
+                    <div className="admin-dropdown-container" ref={marketSettingsRef}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsMoreMenuOpen(!isMoreMenuOpen);
+                                setIsEditingMarket(false);
+                            }}
+                            className={`admin-dropdown-trigger ${isMoreMenuOpen ? 'active' : ''}`}
+                        >
+                            <Settings size={15} />
+                            <span>고급 관리</span>
+                            <ChevronDown size={14} style={{ transform: isMoreMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+                        </button>
+
+                        {isMoreMenuOpen && (
+                            <div className="admin-dropdown-menu">
+                                <button
+                                    type="button"
+                                    className="admin-dropdown-item"
+                                    onClick={() => {
+                                        setIsMoreMenuOpen(false);
+                                        handleExportStudentLedgerCSV();
+                                    }}
+                                >
+                                    <span>📥</span> 원장 CSV 다운로드
+                                </button>
+                                <button
+                                    type="button"
+                                    className="admin-dropdown-item"
+                                    onClick={() => {
+                                        setIsMoreMenuOpen(false);
+                                        setIsEditingMarket(true);
+                                    }}
+                                >
+                                    <span>⏱️</span> 운영시간 / 모드 설정
+                                </button>
+                                <div className="admin-dropdown-divider" />
+                                <button
+                                    type="button"
+                                    className="admin-dropdown-item warning"
+                                    disabled={isRollingBack}
+                                    onClick={() => {
+                                        setIsMoreMenuOpen(false);
+                                        handleRollbackDemoSession();
+                                    }}
+                                    style={{ cursor: isRollingBack ? 'not-allowed' : 'pointer' }}
+                                >
+                                    <span>🛡️</span> {isRollingBack ? '복구 진행 중...' : '데모 세션 원상복구'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="admin-dropdown-item danger"
+                                    onClick={() => {
+                                        setIsMoreMenuOpen(false);
+                                        setIsResetModalOpen(true);
+                                    }}
+                                >
+                                    <span>🔄</span> 수업 1-클릭 리셋
+                                </button>
+                            </div>
+                        )}
+
+                        {isEditingMarket && (
                         <div style={{
                             position: 'absolute',
                             top: 'calc(100% + 10px)',
@@ -974,22 +963,47 @@ const AdminDashboard = ({ initialTab }) => {
                         </div>
                     </div>
 
-                    <div className="table-container glass-panel">
+                    <div className="table-card glass-panel">
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
                         ) : (
-                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '6%' }}>ID</th>
-                                        <th style={{ width: '12%' }}>학번</th>
-                                        <th style={{ width: '12%' }}>이름</th>
-                                        <th style={{ width: '15%' }}>학년 / 반 / 번호</th>
-                                        <th style={{ width: '15%' }}>총 보유 포인트</th>
-                                        <th style={{ width: '9%' }}>보유 쿠폰</th>
-                                        <th style={{ width: '31%' }}>관리 액션</th>
-                                    </tr>
-                                </thead>
+                            <div className="table-horizontal-scroll">
+                                <div style={{ minWidth: '900px' }}>
+                                    <div className="table-header-wrapper">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '6%' }} />
+                                                <col style={{ width: '12%' }} />
+                                                <col style={{ width: '12%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '9%' }} />
+                                                <col style={{ width: '31%' }} />
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>학번</th>
+                                                    <th>이름</th>
+                                                    <th>학년 / 반 / 번호</th>
+                                                    <th>총 보유 포인트</th>
+                                                    <th>보유 쿠폰</th>
+                                                    <th>관리 액션</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div className="table-body-scroll">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '6%' }} />
+                                                <col style={{ width: '12%' }} />
+                                                <col style={{ width: '12%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '9%' }} />
+                                                <col style={{ width: '31%' }} />
+                                            </colgroup>
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map((s, idx) => {
@@ -1045,7 +1059,10 @@ const AdminDashboard = ({ initialTab }) => {
                                         </tr>
                                     )}
                                 </tbody>
-                            </table>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -1054,22 +1071,47 @@ const AdminDashboard = ({ initialTab }) => {
             {/* Tab 2: Stocks Management */}
             {activeTab === 'stocks' && (
                 <div className="tab-content">
-                    <div className="table-container glass-panel">
+                    <div className="table-card glass-panel">
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
                         ) : (
-                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '7%' }}>종목 ID</th>
-                                        <th style={{ width: '15%' }}>종목명</th>
-                                        <th style={{ width: '20%' }}>업종 / 설명</th>
-                                        <th style={{ width: '13%' }}>최초 발행 가격</th>
-                                        <th style={{ width: '12%' }}>현재 발행 잔량</th>
-                                        <th style={{ width: '15%' }}>상태</th>
-                                        <th style={{ width: '18%' }}>관리 액션</th>
-                                    </tr>
-                                </thead>
+                            <div className="table-horizontal-scroll">
+                                <div style={{ minWidth: '900px' }}>
+                                    <div className="table-header-wrapper">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '7%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '13%' }} />
+                                                <col style={{ width: '12%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '18%' }} />
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th>종목 ID</th>
+                                                    <th>종목명</th>
+                                                    <th>업종 / 설명</th>
+                                                    <th>최초 발행 가격</th>
+                                                    <th>현재 발행 잔량</th>
+                                                    <th>상태</th>
+                                                    <th>관리 액션</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div className="table-body-scroll">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '7%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '13%' }} />
+                                                <col style={{ width: '12%' }} />
+                                                <col style={{ width: '15%' }} />
+                                                <col style={{ width: '18%' }} />
+                                            </colgroup>
                                 <tbody>
                                     {stocks.length > 0 ? (
                                         stocks.map((st) => (
@@ -1123,7 +1165,10 @@ const AdminDashboard = ({ initialTab }) => {
                                         </tr>
                                     )}
                                 </tbody>
-                            </table>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -1146,20 +1191,41 @@ const AdminDashboard = ({ initialTab }) => {
                         </button>
                     </div>
 
-                    <div className="table-container glass-panel">
+                    <div className="table-card glass-panel">
                         {loading ? (
                             <div className="loading-box"><div className="loading-spinner"></div></div>
                         ) : (
-                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '16%' }}>일련번호</th>
-                                        <th style={{ width: '28%' }}>쿠폰 상품명</th>
-                                        <th style={{ width: '18%' }}>판매 가격</th>
-                                        <th style={{ width: '18%' }}>발행 상태</th>
-                                        <th style={{ width: '20%' }}>관리 액션</th>
-                                    </tr>
-                                </thead>
+                            <div className="table-horizontal-scroll">
+                                <div style={{ minWidth: '900px' }}>
+                                    <div className="table-header-wrapper">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '16%' }} />
+                                                <col style={{ width: '28%' }} />
+                                                <col style={{ width: '18%' }} />
+                                                <col style={{ width: '18%' }} />
+                                                <col style={{ width: '20%' }} />
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th>일련번호</th>
+                                                    <th>쿠폰 상품명</th>
+                                                    <th>판매 가격</th>
+                                                    <th>발행 상태</th>
+                                                    <th>관리 액션</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div className="table-body-scroll">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '16%' }} />
+                                                <col style={{ width: '28%' }} />
+                                                <col style={{ width: '18%' }} />
+                                                <col style={{ width: '18%' }} />
+                                                <col style={{ width: '20%' }} />
+                                            </colgroup>
                                 <tbody>
                                     {coupons.length > 0 ? (
                                         coupons.map((c) => (
@@ -1220,7 +1286,10 @@ const AdminDashboard = ({ initialTab }) => {
                                         </tr>
                                     )}
                                 </tbody>
-                            </table>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -1236,17 +1305,38 @@ const AdminDashboard = ({ initialTab }) => {
                         <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>
                             현재 시장에서 정상 거래 중인 종목들입니다. 상장폐지 시 미체결 호가는 전액 환불되며 취소할 수 없습니다.
                         </p>
-                        <div className="table-container">
-                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '10%' }}>종목 ID</th>
-                                        <th style={{ width: '25%' }}>종목명</th>
-                                        <th style={{ width: '20%' }}>최초 발행가</th>
-                                        <th style={{ width: '20%' }}>현재 잔량</th>
-                                        <th style={{ width: '25%' }}>관리 액션</th>
-                                    </tr>
-                                </thead>
+                        <div className="table-card">
+                            <div className="table-horizontal-scroll">
+                                <div style={{ minWidth: '900px' }}>
+                                    <div className="table-header-wrapper">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '10%' }} />
+                                                <col style={{ width: '25%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '25%' }} />
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th>종목 ID</th>
+                                                    <th>종목명</th>
+                                                    <th>최초 발행가</th>
+                                                    <th>현재 잔량</th>
+                                                    <th>관리 액션</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div className="table-body-scroll">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '10%' }} />
+                                                <col style={{ width: '25%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '25%' }} />
+                                            </colgroup>
                                 <tbody>
                                     {stocks.filter(st => st.status !== 'DELISTED').length > 0 ? (
                                         stocks.filter(st => st.status !== 'DELISTED').map(st => (
@@ -1269,7 +1359,10 @@ const AdminDashboard = ({ initialTab }) => {
                                         <tr><td colSpan="5" className="empty-row">거래 중인 종목이 없습니다.</td></tr>
                                     )}
                                 </tbody>
-                            </table>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1280,17 +1373,38 @@ const AdminDashboard = ({ initialTab }) => {
                         <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>
                             이미 상장폐지(청산) 처리가 완료된 종목들의 감사 내역입니다.
                         </p>
-                        <div className="table-container">
-                            <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '10%' }}>ID</th>
-                                        <th style={{ width: '25%' }}>종목명</th>
-                                        <th style={{ width: '25%' }}>상장폐지 일시</th>
-                                        <th style={{ width: '20%' }}>보상 단가</th>
-                                        <th style={{ width: '20%' }}>상태</th>
-                                    </tr>
-                                </thead>
+                        <div className="table-card">
+                            <div className="table-horizontal-scroll">
+                                <div style={{ minWidth: '900px' }}>
+                                    <div className="table-header-wrapper">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '10%' }} />
+                                                <col style={{ width: '25%' }} />
+                                                <col style={{ width: '25%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '20%' }} />
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>종목명</th>
+                                                    <th>상장폐지 일시</th>
+                                                    <th>보상 단가</th>
+                                                    <th>상태</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div className="table-body-scroll">
+                                        <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                            <colgroup>
+                                                <col style={{ width: '10%' }} />
+                                                <col style={{ width: '25%' }} />
+                                                <col style={{ width: '25%' }} />
+                                                <col style={{ width: '20%' }} />
+                                                <col style={{ width: '20%' }} />
+                                            </colgroup>
                                 <tbody>
                                     {stocks.filter(st => st.status === 'DELISTED').length > 0 ? (
                                         stocks.filter(st => st.status === 'DELISTED').map(st => (
@@ -1310,7 +1424,10 @@ const AdminDashboard = ({ initialTab }) => {
                                         <tr><td colSpan="5" className="empty-row">상장폐지된 이력이 없습니다.</td></tr>
                                     )}
                                 </tbody>
-                            </table>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

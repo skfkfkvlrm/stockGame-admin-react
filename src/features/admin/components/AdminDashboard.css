@@ -186,15 +186,67 @@
     font-weight: 600;
 }
 
+/* Table Card & Split Scroll Architecture */
+.table-card,
 .table-container {
     border-radius: 14px;
-    max-height: 540px;          
-    overflow-y: auto;           
-    overflow-x: auto;           /* 가로 스크롤 허용 */
     background: #ffffff;
     border: 1px solid var(--bg-panel-border, rgba(0,0,0,0.08));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-horizontal-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+}
+
+.table-header-wrapper {
+    background: #1e293b;
+    border-radius: 14px 14px 0 0;
+    overflow: hidden;
     scrollbar-gutter: stable;
+}
+
+.table-header-wrapper .admin-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 0;
+}
+
+.table-body-scroll {
+    max-height: 480px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    background: #ffffff;
+}
+
+.table-body-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-body-scroll::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.table-body-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.table-body-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.table-body-scroll .admin-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 0;
 }
 
 .admin-table {
@@ -203,13 +255,7 @@
     border-spacing: 0;
     text-align: left;
     table-layout: fixed;
-    min-width: 900px; /* 중첩 방지 최소 너비 */
-}
-
-.admin-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    min-width: 900px;
 }
 
 .admin-table th {
@@ -217,14 +263,11 @@
     color: #ffffff;
     font-weight: 600;
     font-size: 0.85rem;
-    padding: 0.8rem 0.6rem;
+    padding: 0.85rem 0.6rem;
     border-bottom: 1px solid #334155;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    position: sticky;
-    top: 0;
-    z-index: 2;
 }
 
 .admin-table th:last-child,
@@ -246,6 +289,101 @@
 
 .admin-table tbody tr:hover {
     background: #f8fafc;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Admin Action Dropdown Menu */
+.admin-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.admin-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.admin-dropdown-trigger:hover,
+.admin-dropdown-trigger.active {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+
+.admin-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 100;
+    background: #ffffff;
+    min-width: 220px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: popoverFadeIn 0.15s ease-out;
+}
+
+.admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.admin-dropdown-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.admin-dropdown-item.danger {
+    color: #e11d48;
+}
+
+.admin-dropdown-item.danger:hover {
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.admin-dropdown-item.warning {
+    color: #b45309;
+}
+
+.admin-dropdown-item.warning:hover {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.admin-dropdown-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 6px;
 }
 
 .font-mono { font-family: monospace; }
