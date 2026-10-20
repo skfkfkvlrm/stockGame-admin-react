@@ -114,6 +114,22 @@ export const adminMarketService = {
     },
 
     /**
+     * 데모 세션 거래 및 LP 주문/체결 선택적 롤백 (일반 학생 계정 보존)
+     */
+    async rollbackAdminDemoSession() {
+        if (isSupabaseMode) {
+            const { data, error } = await supabase.rpc('rollback_admin_demo_session');
+            if (error) {
+                throw new Error(error.message || '데모 세션 롤백 실패');
+            }
+            return data;
+        }
+
+        const res = await api.post('/admin/demo/rollback');
+        return res.data?.data || res.data;
+    },
+
+    /**
      * 시장 상태 변경 실시간 웹소켓 구독
      */
     subscribeMarketStatus(onUpdate) {

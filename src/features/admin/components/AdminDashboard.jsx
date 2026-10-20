@@ -181,6 +181,23 @@ const AdminDashboard = ({ initialTab }) => {
     const [resetDefaultPoint, setResetDefaultPoint] = useState(100000);
     const [resetStockPrice, setResetStockPrice] = useState(true);
     const [isResetting, setIsResetting] = useState(false);
+    const [isRollingBack, setIsRollingBack] = useState(false);
+
+    const handleRollbackDemoSession = async () => {
+        if (!window.confirm('데모 세션 거래 내역을 원상복구하시겠습니까?\n데모 계정 및 유동성 공급자(LP)의 데모 주문/체결만 롤백되며, 일반 학생 계정 자산은 안전하게 보존됩니다.')) {
+            return;
+        }
+        setIsRollingBack(true);
+        try {
+            const res = await adminMarketService.rollbackAdminDemoSession();
+            alert(`✅ 데모 세션 롤백 완료!\n- 롤백 체결 건수: ${res?.cancelledTradesCount || 0}건\n- 취소 미체결 주문: ${res?.cancelledOrdersCount || 0}건\n- 종목 호가 원복: ${res?.revertedStocksCount || 0}개`);
+            fetchData();
+        } catch (err) {
+            alert(`데모 세션 롤백 실패: ${err.message}`);
+        } finally {
+            setIsRollingBack(false);
+        }
+    };
 
     const handleResetClassroomSession = async () => {
         if (!window.confirm('정말로 교실 모의투자 세션을 초기화하시겠습니까? 학생들의 보유 주식이 청산되고 포인트가 재설정됩니다.')) {
@@ -684,6 +701,25 @@ const AdminDashboard = ({ initialTab }) => {
                         }}
                     >
                         <RefreshCw size={15} /> 🔄 수업 1-클릭 리셋
+                    </button>
+                    <button
+                        disabled={isRollingBack}
+                        onClick={handleRollbackDemoSession}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: '#fff1f2',
+                            color: '#e11d48',
+                            border: '1px solid #fecdd3',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            cursor: isRollingBack ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        <ShieldCheck size={15} /> {isRollingBack ? '복구 중...' : '🛡️ 데모 세션 원상복구'}
                     </button>
                     <button
                         onClick={handleExportStudentLedgerCSV}

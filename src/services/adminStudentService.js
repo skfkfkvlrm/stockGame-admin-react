@@ -12,6 +12,7 @@ export const adminStudentService = {
                     .from('profiles')
                     .select('*')
                     .eq('role', 'ROLE_STUDENT')
+                    .neq('status', 'DELETED')
                     .order('total_point', { ascending: false }),
                 supabase
                     .from('user_holdings')
@@ -22,7 +23,7 @@ export const adminStudentService = {
                     .select('id, current_price')
             ]);
 
-            const profiles = profilesRes.data || [];
+            const profiles = (profilesRes.data || []).filter((p) => p.status !== 'DELETED');
             const holdings = holdingsRes.data || [];
             const stocks = stocksRes.data || [];
 
@@ -38,7 +39,7 @@ export const adminStudentService = {
                 userStockEvalMap.set(h.user_id, (userStockEvalMap.get(h.user_id) || 0) + evalValue);
             });
 
-            return profiles.map((p, index) => {
+            const studentList = profiles.map((p) => {
                 const stockVal = userStockEvalMap.get(p.id) || 0;
                 const cash = p.total_point || 0;
                 const totalAsset = cash + stockVal;
@@ -53,7 +54,7 @@ export const adminStudentService = {
                     grade: p.grade,
                     className: p.class_name,
                     classNumber: p.class_number,
-                    rank: index + 1,
+                    rank: 1,
                     totalPoint: cash,
                     stockEvaluation: stockVal,
                     totalAsset: totalAsset,
@@ -63,10 +64,19 @@ export const adminStudentService = {
                     status: p.status
                 };
             });
+
+            // 총자산(totalAsset) 기준 내림차순 정렬 및 rank 재부여
+            studentList.sort((a, b) => b.totalAsset - a.totalAsset);
+            studentList.forEach((s, idx) => {
+                s.rank = idx + 1;
+            });
+
+            return studentList;
         }
 
         const res = await api.get('/admin/students');
-        return res.data?.data || [];
+        const list = res.data?.data || [];
+        return Array.isArray(list) ? list.filter((s) => s.status !== 'DELETED') : [];
     },
 
     /**

@@ -1,5 +1,6 @@
 import { supabase, isSupabaseMode } from '../lib/supabaseClient';
 import api from '../api/axios';
+import adminMarketService from './adminMarketService';
 
 export const adminAuthService = {
     /**
@@ -121,9 +122,15 @@ export const adminAuthService = {
     },
 
     /**
-     * 로그아웃
+     * 로그아웃 (데모 세션 자동 원상복구 포함)
      */
     async logout() {
+        try {
+            await adminMarketService.rollbackAdminDemoSession();
+        } catch (e) {
+            console.warn('Admin logout demo session rollback warning:', e);
+        }
+
         if (isSupabaseMode) {
             await supabase.auth.signOut();
             localStorage.removeItem('jwt_token');
