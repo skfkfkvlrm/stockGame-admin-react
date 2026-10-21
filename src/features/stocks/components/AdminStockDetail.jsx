@@ -153,12 +153,36 @@ const AdminStockDetail = () => {
             tickAmount: activeTimeframe === '1D' ? 5 : 6,
             labels: { 
                 rotate: 0,
-                rotateAlways: true,
+                rotateAlways: false,
                 style: { colors: '#64748b', fontSize: '0.72rem' },
                 hideOverlappingLabels: true,
                 trim: false
             } 
         },
+        responsive: [
+            {
+                breakpoint: 1280,
+                options: {
+                    xaxis: {
+                        tickAmount: 5,
+                        labels: {
+                            style: { fontSize: '0.65rem' }
+                        }
+                    }
+                }
+            },
+            {
+                breakpoint: 768,
+                options: {
+                    xaxis: {
+                        tickAmount: 3,
+                        labels: {
+                            style: { fontSize: '0.60rem' }
+                        }
+                    }
+                }
+            }
+        ],
         yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => `${Math.round(v).toLocaleString()}원` } },
         grid: { 
             borderColor: '#cbd5e1', 
