@@ -47,11 +47,31 @@ export const adminMarketService = {
             if (error) {
                 throw new Error(error.message || '시장 상태 변경 실패');
             }
+            // 시장이 개장(OPEN)되었을 경우, 최신 코스피/코스닥 지수를 즉시 1회 백그라운드 동기화
+            if (data?.marketOpen) {
+                supabase.functions.invoke('sync-market-indices').catch(err => {
+                    console.warn('Market indices sync trigger failed:', err);
+                });
+            }
             return data;
         }
 
         const res = await api.post('/admin/market/toggle');
         return res.data?.data;
+    },
+
+    /**
+     * 코스피/코스닥 시장 지수 즉시 동기화 (Edge Function 트리거)
+     */
+    async syncMarketIndices() {
+        if (isSupabaseMode) {
+            const { data, error } = await supabase.functions.invoke('sync-market-indices');
+            if (error) {
+                throw new Error(error.message || '시장 지수 동기화 실패');
+            }
+            return data;
+        }
+        return { success: false, message: 'Spring Boot mode not supported' };
     },
 
     /**
