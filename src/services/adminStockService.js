@@ -259,10 +259,31 @@ export const adminStockService = {
     },
 
     /**
-     * 특정 종목 일별 시세 히스토리(OHLCV) 조회
+     * 특정 종목 시세 히스토리(OHLCV) 조회 (기간별 집계 지원)
      */
-    async getStockHistory(stockId) {
+    async getStockHistory(stockId, timeframe = '1W') {
         if (isSupabaseMode) {
+            try {
+                const { data, error } = await supabase.rpc('get_stock_ohlcv', {
+                    p_stock_id: Number(stockId),
+                    p_timeframe: timeframe
+                });
+
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    return data.map(h => ({
+                        date: h.date || h.time,
+                        baseDate: h.baseDate || h.date || h.time,
+                        openPrice: h.openPrice ?? h.open,
+                        highPrice: h.highPrice ?? h.high,
+                        lowPrice: h.lowPrice ?? h.low,
+                        closePrice: h.closePrice ?? h.close,
+                        volume: h.volume ?? 0
+                    }));
+                }
+            } catch (rpcErr) {
+                console.warn('[adminStockService] get_stock_ohlcv RPC failed, falling back:', rpcErr);
+            }
+
             const { data, error } = await supabase
                 .from('stock_price_history')
                 .select('*')
@@ -272,6 +293,7 @@ export const adminStockService = {
             if (error) return [];
 
             return (data || []).map((h) => ({
+                date: h.base_date,
                 baseDate: h.base_date,
                 openPrice: h.open_price,
                 highPrice: h.high_price,
@@ -281,7 +303,9 @@ export const adminStockService = {
             }));
         }
 
-        const res = await api.get(`/stock/${stockId}/history`).catch(() => ({ data: { data: [] } }));
+        const res = await api.get(`/stock/${stockId}/history`, {
+            params: { timeframe }
+        }).catch(() => ({ data: { data: [] } }));
         return Array.isArray(res.data?.data) ? res.data.data : [];
     }
 };

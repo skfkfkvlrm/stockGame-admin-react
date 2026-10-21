@@ -5,6 +5,13 @@ import { ArrowLeft, RefreshCw, Users, TrendingUp, Activity, Clock, ShieldCheck, 
 import adminStockService from '../../../services/adminStockService';
 import './AdminStockDetail.css';
 
+const ADMIN_TIMEFRAMES = [
+    { id: '1D', label: '1일', desc: '오늘 장 시작 ~ 현재' },
+    { id: '1W', label: '1주', desc: '최근 7일간 시세' },
+    { id: '1MO', label: '1개월', desc: '최근 30일간 시세' },
+    { id: 'ALL', label: '전체', desc: '상장 초기 ~ 현재' }
+];
+
 const AdminStockDetail = () => {
     const { stockId } = useParams();
     const navigate = useNavigate();
@@ -12,16 +19,17 @@ const AdminStockDetail = () => {
     const [stockInfo, setStockInfo] = useState(null);
     const [chartData, setChartData] = useState([]);
     const [transactions, setTransactions] = useState([]);
+    const [activeTimeframe, setActiveTimeframe] = useState('1W');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = async (tf = activeTimeframe) => {
         setIsRefreshing(true);
         try {
             const [info, history, txList] = await Promise.all([
                 adminStockService.getStockDetail(stockId),
-                adminStockService.getStockHistory(stockId),
+                adminStockService.getStockHistory(stockId, tf),
                 adminStockService.getStockTransactions(stockId)
             ]);
 
@@ -38,41 +46,58 @@ const AdminStockDetail = () => {
 
             const initialPrice = info.nowPrice ?? info.pubPrice ?? 0;
             const rawHistory = Array.isArray(history) ? history : [];
-            
-            // 일별 거래 기록 OHLC 집계 (category x축용 문자열 라벨)
-            const dayGroups = {};
+            const isIntraday = tf === '1D';
+
+            let mappedHistory = [];
 
             if (rawHistory.length > 0) {
-                rawHistory.forEach(item => {
-                    const d = item.baseDate || item.date || item.createdDate;
-                    const dateObj = new Date(d || Date.now());
-                    const dateKey = d ? dateObj.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
-                    const label = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+                mappedHistory = rawHistory.map(item => {
+                    const d = item.baseDate || item.date || item.createdDate || '';
+                    let label = d;
+                    if (isIntraday) {
+                        // 1일 모드: HH:mm 단위 표기
+                        if (typeof d === 'string' && d.includes(' ')) {
+                            const timePart = d.split(' ')[1];
+                            if (timePart) label = timePart.slice(0, 5);
+                        } else if (d) {
+                            const dateObj = new Date(d);
+                            if (!isNaN(dateObj.getTime())) {
+                                label = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                            }
+                        }
+                    } else {
+                        // 1주, 1개월, 전체 모드: MM/DD 표기
+                        if (typeof d === 'string' && d.includes('-')) {
+                            const parts = d.split('-');
+                            if (parts.length >= 3) {
+                                label = `${parts[1]}/${parts[2].slice(0, 2)}`;
+                            }
+                        } else if (d) {
+                            const dateObj = new Date(d);
+                            if (!isNaN(dateObj.getTime())) {
+                                label = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+                            }
+                        }
+                    }
                     const p = item.closePrice ?? item.price ?? initialPrice;
                     const open = item.openPrice ?? p;
                     const high = item.highPrice ?? Math.max(open, p);
                     const low = item.lowPrice ?? Math.min(open, p);
                     const close = item.closePrice ?? p;
-
-                    if (!dayGroups[dateKey]) {
-                        dayGroups[dateKey] = { label, rawTime: dateObj.getTime(), open, high, low, close };
-                    } else {
-                        dayGroups[dateKey].high = Math.max(dayGroups[dateKey].high, high);
-                        dayGroups[dateKey].low = Math.min(dayGroups[dateKey].low, low);
-                        dayGroups[dateKey].close = close;
-                    }
+                    return { x: label, y: [open, high, low, close] };
                 });
             } else if (Array.isArray(txList) && txList.length > 0) {
-                // 일별 시세 이력이 없을 때 실시간 체결 기록(txList)으로 일별 OHLC 생성
+                // 시세 히스토리가 없을 때 실시간 체결 기록(txList)으로 OHLC 생성
                 const ascTx = [...txList].reverse();
+                const dayGroups = {};
                 ascTx.forEach(tx => {
                     const d = tx.created_at || tx.created_date || tx.createdDate;
                     const dateObj = new Date(d || Date.now());
-                    const dateKey = !isNaN(dateObj.getTime()) ? dateObj.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
-                    const label = !isNaN(dateObj.getTime()) 
-                        ? `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`
-                        : '01/01';
+                    const label = isIntraday
+                        ? `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`
+                        : `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
                     const p = Number(tx.price ?? tx.tradePrice ?? initialPrice);
+                    const dateKey = isIntraday ? label : (d ? dateObj.toISOString().slice(0, 10) : 'today');
 
                     if (!dayGroups[dateKey]) {
                         dayGroups[dateKey] = { label, rawTime: dateObj.getTime(), open: p, high: p, low: p, close: p };
@@ -82,17 +107,18 @@ const AdminStockDetail = () => {
                         dayGroups[dateKey].close = p;
                     }
                 });
+                mappedHistory = Object.values(dayGroups).sort((a, b) => a.rawTime - b.rawTime).map(g => ({
+                    x: g.label,
+                    y: [g.open, g.high, g.low, g.close]
+                }));
             }
-
-            // 실제 거래일만 정렬하여 표시 (관리자 차트는 전체 기간 표시)
-            let mappedHistory = Object.values(dayGroups)
-                .sort((a, b) => a.rawTime - b.rawTime)
-                .map(g => ({ x: g.label, y: [g.open, g.high, g.low, g.close] }));
 
             // 시세 이력과 체결 내역이 모두 없을 때 최초 발행가 기준 캔들 생성
             if (mappedHistory.length === 0 && initialPrice > 0) {
                 const today = new Date();
-                const label = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+                const label = isIntraday
+                    ? `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`
+                    : `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
                 mappedHistory = [{ x: label, y: [initialPrice, initialPrice, initialPrice, initialPrice] }];
             }
 
@@ -108,37 +134,42 @@ const AdminStockDetail = () => {
     };
 
     useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 5000); // 5초 주기 실시간 자동 동기화
+        fetchData(activeTimeframe);
+        const interval = setInterval(() => fetchData(activeTimeframe), 5000); // 5초 주기 실시간 자동 동기화
         return () => clearInterval(interval);
-    }, [stockId]);
+    }, [stockId, activeTimeframe]);
 
     const chartOptions = {
         chart: { 
             type: 'candlestick', 
             background: 'transparent', 
             toolbar: { show: false }, 
-            animations: { enabled: false } 
+            animations: { enabled: true, easing: 'easeinout', speed: 300 } 
         },
         theme: { mode: 'light' },
         plotOptions: { candlestick: { colors: { upward: '#ef4444', downward: '#3b82f6' } } },
         xaxis: { 
             type: 'category',
+            tickAmount: activeTimeframe === '1D' ? 5 : 6,
             labels: { 
                 rotate: 0,
                 rotateAlways: true,
-                style: { colors: '#64748b', fontSize: '0.75rem' },
+                style: { colors: '#64748b', fontSize: '0.72rem' },
                 hideOverlappingLabels: true,
                 trim: false
             } 
         },
-        yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => `${v.toLocaleString()}원` } },
+        yaxis: { labels: { style: { colors: '#64748b' }, formatter: (v) => `${Math.round(v).toLocaleString()}원` } },
         grid: { 
             borderColor: '#cbd5e1', 
             strokeDashArray: 3,
             opacity: 0.8,
             xaxis: { lines: { show: false } },
             yaxis: { lines: { show: true } }
+        },
+        tooltip: {
+            theme: 'light',
+            x: { format: activeTimeframe === '1D' ? 'HH:mm' : 'yyyy-MM-dd' }
         }
     };
 
@@ -192,7 +223,7 @@ const AdminStockDetail = () => {
                     <ArrowLeft size={16} /> 대시보드로 돌아가기
                 </button>
                 <button 
-                    onClick={fetchData} 
+                    onClick={() => fetchData(activeTimeframe)} 
                     disabled={isRefreshing}
                     style={{
                         display: 'inline-flex',
@@ -234,9 +265,30 @@ const AdminStockDetail = () => {
                         </div>
                     </div>
 
+                    {/* Chart Timeframe Tabs Toolbar */}
+                    <div className="admin-chart-toolbar">
+                        <div className="admin-timeframe-tabs">
+                            {ADMIN_TIMEFRAMES.map((tf) => (
+                                <button
+                                    key={tf.id}
+                                    type="button"
+                                    className={`admin-timeframe-btn ${activeTimeframe === tf.id ? 'active' : ''}`}
+                                    onClick={() => setActiveTimeframe(tf.id)}
+                                    title={tf.desc}
+                                >
+                                    {tf.label}
+                                </button>
+                            ))}
+                        </div>
+                        <span className="admin-timeframe-indicator">
+                            {ADMIN_TIMEFRAMES.find(t => t.id === activeTimeframe)?.desc}
+                        </span>
+                    </div>
+
                     <div className="admin-chart-wrapper">
                         {chartData.length > 0 && chartData[0].data.length > 0 ? (
                             <ReactApexChart 
+                                key={`admin-candlestick-${activeTimeframe}`}
                                 options={chartOptions} 
                                 series={chartData} 
                                 type="candlestick" 

@@ -113,10 +113,56 @@
     color: #64748b;
 }
 
-.admin-chart-wrapper {
-    margin-top: 20px;
-    padding-top: 20px;
+.admin-chart-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    padding-top: 16px;
     border-top: 1px solid #f1f5f9;
+}
+
+.admin-timeframe-tabs {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+    gap: 2px;
+}
+
+.admin-timeframe-btn {
+    border: none;
+    background: transparent;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-timeframe-btn:hover {
+    color: #0f172a;
+}
+
+.admin-timeframe-btn.active {
+    background: #ffffff;
+    color: #2563eb;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-timeframe-indicator {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.admin-chart-wrapper {
+    margin-top: 4px;
+    padding-top: 4px;
 }
 
 .admin-stats-summary-card {
